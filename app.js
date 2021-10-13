@@ -1,6 +1,7 @@
 const express = require('express');
 const sequelize = require('./database');
 require('dotenv').config();
+const { isAuthenticated } = require('./middleware/authentication');
 
 const userRoutes = require('./routes/userRoutes');
 const List = require('./models/list')
@@ -31,6 +32,13 @@ app.post('/create-dummy-list', (req, res) => {
 	List.create({ title: "Dummy list" })
 		.then(list => res.json(list))
 		.catch(err => console.log(err))
+});
+
+app.get('/test-auth', async (req, res) => {
+	const [err, user] = await isAuthenticated(req, res);
+	if (!err) {
+		res.send('Authenticated')
+	}
 });
 
 app.use('/user', userRoutes);

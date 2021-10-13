@@ -49,7 +49,7 @@ const login = (req, res) => {
 		// Secure password with SHA256
 		const secure_password = sha256(password);
 
-		// Creates the user instance
+		// Connects the user
 		User.findOne({ where: { username: username } })
 			.then(user => {
 				if (!user) {
