@@ -1,5 +1,8 @@
 const express = require('express');
 const sequelize = require('./database');
+require('dotenv').config();
+
+const userRoutes = require('./routes/userRoutes');
 const List = require('./models/list')
 
 const app = express();
@@ -12,6 +15,11 @@ sequelize.authenticate()
 	})
 	.catch(() => console.log('Failed connecting to DB.'));
 
+// Register view engine
+app.set('view engine', 'ejs');
+
+// middleware
+app.use(express.json())
 
 app.get('/lists', (req, res) => {
 	List.findAll()
@@ -25,7 +33,7 @@ app.post('/create-dummy-list', (req, res) => {
 		.catch(err => console.log(err))
 });
 
-app.set('view engine', 'ejs');
+app.use('/user', userRoutes);
 
 app.use((req, res) => {
 	res.status(404).render('404', { title: "Not Found" });
