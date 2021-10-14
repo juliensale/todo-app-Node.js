@@ -36,11 +36,27 @@ const list_create = async (req, res) => {
 	const [err, user] = await isAuthenticated(req, res);
 	if (!err) {
 		try {
-			const { title } = req.body;
-			if (!title) {
+			const { title, color } = req.body;
+
+			// Checking types
+			if (!(
+				typeof (title) === 'string' && title
+				&& (color ? typeof (color) === 'string' : true)
+			)) {
 				res.status(400).send('Invalid credentials.');
 			}
-			List.create({ title: title, user: user.id })
+
+			var payload = {
+				title: title,
+				user: user.id
+			}
+
+			if (color) {
+				payload.color = color
+			}
+
+			// Creating the instance
+			List.create(payload)
 				.then(list => { res.status(201).send(list) })
 				.catch(err => {
 					console.log(err);
@@ -48,6 +64,7 @@ const list_create = async (req, res) => {
 				});
 		}
 		catch {
+			// If req.body could not be deconstruced
 			res.status(400).send('Invalid credentials.')
 		}
 	}
@@ -56,18 +73,32 @@ const list_create = async (req, res) => {
 const list_update = async (req, res) => {
 	const [err, user] = await isAuthenticated(req, res);
 	if (!err) {
-
 		try {
-			const { title } = req.body;
-			if (!title) {
+			const { title, color } = req.body;
+
+			// Checking types
+			if (!(
+				(title ? typeof (title) === 'string' : true)
+				&& (color ? (typeof (color) === 'string') : true)
+			)) {
 				return res.status(400).send('Invalid credentials.')
 			}
+
+			// Finding the list
 			List.findOne({ where: { id: req.params.id, user: user.id } })
 				.then(async (list) => {
+					// Missing list
 					if (!list) {
 						return res.status(404).send('List not found.');
 					}
-					list.title = title;
+
+					// Updating it
+					if (title) {
+						list.title = title;
+					}
+					if (color) {
+						list.color = color;
+					}
 					return await list.save()
 						.then(() => { return res.status(200).send(list) })
 						.catch(err => {
@@ -82,6 +113,7 @@ const list_update = async (req, res) => {
 
 		}
 		catch {
+			// If req.body could not be deconstruced
 			res.status(400).send('Invalid credentials.')
 		}
 
@@ -91,11 +123,14 @@ const list_update = async (req, res) => {
 const list_delete = async (req, res) => {
 	const [err, user] = await isAuthenticated(req, res);
 	if (!err) {
+		// Finding the list
 		List.findOne({ where: { id: req.params.id, user: user.id } })
 			.then(async (list) => {
 				if (!list) {
 					return res.status(404).send('No list found.');
 				}
+
+				// Deleting
 				return await list.destroy()
 					.then(() => {
 						return res.status(205).send('List deleted.');
