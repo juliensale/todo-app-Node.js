@@ -6,6 +6,7 @@ const { isAuthenticated } = require('./middleware/authentication');
 const userRoutes = require('./routes/userRoutes');
 const listRoutes = require('./routes/listRoutes');
 const sublistRoutes = require('./routes/sublistRoutes');
+const taskRoutes = require('./routes/taskRoutes');
 
 
 const app = express();
@@ -41,6 +42,9 @@ app.use('/list', listRoutes);
 
 // Sublist routes
 app.use('/sublist', sublistRoutes);
+
+// Task routes
+app.use('/task', taskRoutes);
 
 app.use((req, res) => {
 	res.status(404).render('404', { title: "Not Found" });
