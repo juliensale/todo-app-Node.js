@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const sha256 = require('sha256');
 const jwt = require('jsonwebtoken');
+const { isAuthenticated } = require('../middleware/authentication');
 
 const register = (req, res) => {
 	try {
@@ -34,7 +35,6 @@ const register = (req, res) => {
 }
 
 const login = (req, res) => {
-	console.log(req.body);
 	try {
 		const { username, password } = req.body;
 
@@ -73,4 +73,11 @@ const login = (req, res) => {
 	}
 }
 
-module.exports = { register, login }
+const get_info = async (req, res) => {
+	const [err, user] = await isAuthenticated(req, res);
+	if (!err) {
+		res.status(200).send(user);
+	}
+}
+
+module.exports = { register, login, get_info }

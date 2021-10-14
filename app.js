@@ -4,7 +4,8 @@ require('dotenv').config();
 const { isAuthenticated } = require('./middleware/authentication');
 
 const userRoutes = require('./routes/userRoutes');
-const List = require('./models/list')
+const listRoutes = require('./routes/listRoutes');
+
 
 const app = express();
 
@@ -22,26 +23,19 @@ app.set('view engine', 'ejs');
 // middleware
 app.use(express.json())
 
-app.get('/lists', (req, res) => {
-	List.findAll()
-		.then(lists => res.json(lists))
-		.catch(err => console.log(err))
-});
+// Test authentication
+// app.get('/test-auth', async (req, res) => {
+// 	const [err, user] = await isAuthenticated(req, res);
+// 	if (!err) {
+// 		res.send('Authenticated')
+// 	}
+// });
 
-app.post('/create-dummy-list', (req, res) => {
-	List.create({ title: "Dummy list" })
-		.then(list => res.json(list))
-		.catch(err => console.log(err))
-});
-
-app.get('/test-auth', async (req, res) => {
-	const [err, user] = await isAuthenticated(req, res);
-	if (!err) {
-		res.send('Authenticated')
-	}
-});
-
+// User routes
 app.use('/user', userRoutes);
+
+// List routes
+app.use('/list', listRoutes);
 
 app.use((req, res) => {
 	res.status(404).render('404', { title: "Not Found" });
