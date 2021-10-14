@@ -60,7 +60,7 @@ const list_create = async (req, res) => {
 				.then(list => { res.status(201).send(list) })
 				.catch(err => {
 					console.log(err);
-					res.status(500).send('Server error.');
+					res.status(400).send('Invalid credentials.');
 				});
 		}
 		catch {

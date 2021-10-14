@@ -58,7 +58,7 @@ const sublist_create = async (req, res) => {
 				.then(sublist => { res.status(201).send(sublist) })
 				.catch(err => {
 					console.log(err);
-					res.status(500).send('Server error.');
+					res.status(400).send('Invalid credentials.');
 				});
 		}
 		catch {
