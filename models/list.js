@@ -10,13 +10,10 @@ const List = sequelize.define('List', {
 	color: {
 		type: DataTypes.STRING,
 		defaultValue: "#000000"
-	},
-	user: {
-		type: DataTypes.NUMBER,
-		allowNull: false
 	}
 });
 
+List.User = List.belongsTo(User);
 
 List.sync();
 

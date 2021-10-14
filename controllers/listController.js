@@ -4,7 +4,7 @@ const List = require('../models/list');
 const list_get = async (req, res) => {
 	const [err, user] = await isAuthenticated(req, res);
 	if (!err) {
-		List.findAll({ where: { user: user.id } })
+		List.findAll({ where: { UserId: user.id } })
 			.then(lists => {
 				res.status(200).send(lists);
 			})
@@ -18,7 +18,7 @@ const list_get = async (req, res) => {
 const list_details_get = async (req, res) => {
 	const [err, user] = await isAuthenticated(req, res);
 	if (!err) {
-		List.findOne({ where: { id: req.params.id, user: user.id } })
+		List.findOne({ where: { id: req.params.id, UserId: user.id } })
 			.then(list => {
 				if (!list) {
 					return res.status(404).send('No list found.');
@@ -48,7 +48,7 @@ const list_create = async (req, res) => {
 
 			var payload = {
 				title: title,
-				user: user.id
+				UserId: user.id
 			}
 
 			if (color) {
@@ -85,7 +85,7 @@ const list_update = async (req, res) => {
 			}
 
 			// Finding the list
-			List.findOne({ where: { id: req.params.id, user: user.id } })
+			List.findOne({ where: { id: req.params.id, UserId: user.id } })
 				.then(async (list) => {
 					// Missing list
 					if (!list) {
@@ -124,7 +124,7 @@ const list_delete = async (req, res) => {
 	const [err, user] = await isAuthenticated(req, res);
 	if (!err) {
 		// Finding the list
-		List.findOne({ where: { id: req.params.id, user: user.id } })
+		List.findOne({ where: { id: req.params.id, UserId: user.id } })
 			.then(async (list) => {
 				if (!list) {
 					return res.status(404).send('No list found.');
