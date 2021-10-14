@@ -43,7 +43,7 @@ const list_create = async (req, res) => {
 				typeof (title) === 'string' && title
 				&& (color ? typeof (color) === 'string' : true)
 			)) {
-				res.status(400).send('Invalid credentials.');
+				return res.status(400).send('Invalid credentials.');
 			}
 
 			var payload = {
