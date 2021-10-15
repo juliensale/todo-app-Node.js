@@ -4,7 +4,12 @@ const { User } = require('./user');
 const { Sublist } = require('./sublist');
 
 const createTaskModel = (sequelize, DataTypes, User, Sublist) => {
-	class Task extends Model { }
+	class Task extends Model {
+		setCompleted(completed) {
+			this.completed = completed;
+			this.save()
+		}
+	}
 	Task.init({
 		title: {
 			type: DataTypes.STRING,
