@@ -7,6 +7,7 @@ const userRoutes = require('./routes/userRoutes');
 const listRoutes = require('./routes/listRoutes');
 const sublistRoutes = require('./routes/sublistRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const subtaskRoutes = require('./routes/subtaskRoutes');
 
 
 const app = express();
@@ -45,6 +46,9 @@ app.use('/sublist', sublistRoutes);
 
 // Task routes
 app.use('/task', taskRoutes);
+
+// Subtask routes
+app.use('/subtask', subtaskRoutes)
 
 app.use((req, res) => {
 	res.status(404).render('404', { title: "Not Found" });
