@@ -1,6 +1,6 @@
 
 const { isAuthenticated } = require("../middleware/authentication")
-const Task = require('../models/task');
+const { Task } = require('../models/task');
 
 const task_get = async (req, res) => {
 	const [err, user] = await isAuthenticated(req, res);

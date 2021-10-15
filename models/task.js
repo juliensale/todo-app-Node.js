@@ -3,22 +3,27 @@ const { DataTypes, Model } = require('sequelize');
 const { User } = require('./user');
 const { Sublist } = require('./sublist');
 
-class Task extends Model { }
-Task.init({
-	title: {
-		type: DataTypes.STRING,
-		allowNull: false
-	},
-	completed: {
-		type: DataTypes.BOOLEAN,
-		defaultValue: false
-	}
-}, { sequelize, modelName: 'Task' });
+const createTaskModel = (sequelize, DataTypes, User, Sublist) => {
+	class Task extends Model { }
+	Task.init({
+		title: {
+			type: DataTypes.STRING,
+			allowNull: false
+		},
+		completed: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
+		}
+	}, { sequelize, modelName: 'Task' });
+	Task.User = Task.belongsTo(User);
+	Task.Sublist = Task.belongsTo(Sublist);
 
+	return Task
+}
 
-Task.User = Task.belongsTo(User);
-Task.Sublist = Task.belongsTo(Sublist);
+const Task = createTaskModel(sequelize, DataTypes, User, Sublist);
+
 
 Task.sync();
 
-module.exports = Task;
+module.exports = { createTaskModel, Task };
