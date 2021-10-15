@@ -1,20 +1,25 @@
 const sequelize = require('../database');
 const { DataTypes } = require('sequelize');
-const User = require('./user');
+const { User } = require('./user');
 
-const List = sequelize.define('List', {
-	title: {
-		type: DataTypes.STRING,
-		allowNull: false
-	},
-	color: {
-		type: DataTypes.STRING,
-		defaultValue: "#000000"
-	}
-});
+const createListModel = (sequelize, DataTypes, User) => {
+	const List = sequelize.define('List', {
+		title: {
+			type: DataTypes.STRING,
+			allowNull: false
+		},
+		color: {
+			type: DataTypes.STRING,
+			defaultValue: "#000000"
+		}
+	});
+	List.User = List.belongsTo(User);
+	return List
+}
 
-List.User = List.belongsTo(User);
+const List = createListModel(sequelize, DataTypes, User);
+
 
 List.sync();
 
-module.exports = List;
+module.exports = { createListModel, List };

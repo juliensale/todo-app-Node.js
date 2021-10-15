@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const { User } = require('../models/user');
 const sha256 = require('sha256');
 const jwt = require('jsonwebtoken');
 const { isAuthenticated } = require('../middleware/authentication');

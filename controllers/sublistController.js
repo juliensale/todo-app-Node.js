@@ -1,6 +1,6 @@
 
 const { isAuthenticated } = require("../middleware/authentication")
-const Sublist = require('../models/sublist');
+const { Sublist } = require('../models/sublist');
 
 const sublist_get = async (req, res) => {
 	const [err, user] = await isAuthenticated(req, res);

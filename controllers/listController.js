@@ -1,5 +1,5 @@
 const { isAuthenticated } = require("../middleware/authentication")
-const List = require('../models/list');
+const { List } = require('../models/list');
 
 const list_get = async (req, res) => {
 	const [err, user] = await isAuthenticated(req, res);

@@ -1,7 +1,7 @@
 const sequelize = require('../database');
 const { DataTypes, Model } = require('sequelize');
-const User = require('./user');
-const Sublist = require('./sublist');
+const { User } = require('./user');
+const { Sublist } = require('./sublist');
 
 class Task extends Model { }
 Task.init({
