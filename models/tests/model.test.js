@@ -1,6 +1,5 @@
-const { unlinkSync } = require('fs');
-const { Sequelize, DataTypes } = require('sequelize');
-const { createModels, removeInstances } = require('../../testingFunctions');
+const { DataTypes } = require('sequelize');
+const { createModels, removeInstances, removeTestDatabase, getTestDatabase } = require('../../testingFunctions');
 
 
 
@@ -19,20 +18,12 @@ describe("Tests the testing database system", () => {
 
 	beforeAll(async () => {
 		// Setting DB up
-		sequelize = new Sequelize({
-			dialect: 'sqlite',
-			storage: './db-test.sqlite',
-			logging: false
-		});
+		sequelize = getTestDatabase();
 	});
 
 	afterAll(() => {
-		sequelize.close()
-			.then(() => {
-				unlinkSync('./db-test.sqlite')
-			})
-			.catch(err => { throw err });
-	})
+		removeTestDatabase(sequelize);
+	});
 
 	it("tests the creation of the tables", () => {
 
