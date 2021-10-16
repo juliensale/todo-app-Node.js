@@ -1,20 +1,24 @@
 const { Sequelize } = require('sequelize');
-const { createUserModel } = require('./models/user');
-const { createListModel } = require('./models/list');
-const { createSublistModel } = require('./models/sublist');
-const { createTaskModel } = require('./models/task');
-const { createSubtaskModel } = require('./models/subtask');
+const createUserModel = require('./models/createModel/createUser');
+const createListModel = require('./models/createModel/createList');
+const createSublistModel = require('./models/createModel/createSublist');
+const createTaskModel = require('./models/createModel/createTask');
+const createSubtaskModel = require('./models/createModel/createSubtask');
 const { unlinkSync } = require('fs');
 
-const getTestDatabase = () => sequelize = new Sequelize({ dialect: 'sqlite', storage: './db-test.sqlite', logging: false });
+const getTestDatabase = () => new Sequelize({ dialect: 'sqlite', storage: './db-test.sqlite', logging: false });
 
-const removeTestDatabase = (sequelize) => {
-	sequelize.close()
+const removeTestDatabase = async (sequelize) => {
+	await sequelize.close()
 		.then(() => {
-			unlinkSync('./db-test.sqlite')
+			try {
+				unlinkSync('./db-test.sqlite');
+			} catch {
+				// Do nothing if the Database was not created first
+			}
 		})
 		.catch(err => { throw err });
-}
+};
 
 const createModels = async (sequelize, DataTypes, models) => {
 	models.User = createUserModel(sequelize, DataTypes);
@@ -22,11 +26,12 @@ const createModels = async (sequelize, DataTypes, models) => {
 	models.Sublist = createSublistModel(sequelize, DataTypes, models.User, models.List);
 	models.Task = createTaskModel(sequelize, DataTypes, models.User, models.Sublist);
 	models.Subtask = createSubtaskModel(sequelize, DataTypes, models.User, models.Task);
-	await models.User.sync();
-	await models.List.sync();
-	await models.Sublist.sync();
-	await models.Task.sync();
-	await models.Subtask.sync();
+	await models.User.sync().catch(err => { throw err });
+	await models.List.sync().catch(err => { throw err });
+	await models.Sublist.sync().catch(err => { throw err });
+	await models.Task.sync().catch(err => { throw err });
+	await models.Subtask.sync().catch(err => { throw err });
+
 };
 
 const removeInstances = async (instances, models) => {
@@ -39,11 +44,11 @@ const removeInstances = async (instances, models) => {
 	}
 
 
-	await models.User.sync();
-	await models.List.sync();
-	await models.Sublist.sync();
-	await models.Task.sync();
-	await models.Subtask.sync();
+	for (const [key, value] of Object.entries(instances)) {
+		if (value !== undefined) {
+			await value.sync().catch(err => { throw err })
+		}
+	}
 }
 
 module.exports = { getTestDatabase, removeTestDatabase, createModels, removeInstances };

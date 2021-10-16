@@ -1,5 +1,8 @@
+'use strict'
+
 const { DataTypes } = require('sequelize');
 const { createModels, removeInstances, removeTestDatabase, getTestDatabase } = require('../../testingFunctions');
+const createUserModel = require('../createModel/createUser');
 
 
 
@@ -16,13 +19,13 @@ describe("Tests the testing database system", () => {
 		user: undefined
 	};
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		// Setting DB up
 		sequelize = getTestDatabase();
 	});
 
 	afterAll(() => {
-		removeTestDatabase(sequelize);
+		return removeTestDatabase(sequelize);
 	});
 
 	it("tests the creation of the tables", () => {
@@ -47,28 +50,31 @@ describe("Tests the testing database system", () => {
 	});
 
 
-	it("tests the deletion of instances", () => {
+	it("tests the deletion of instances", async () => {
+		// Creates the user model if first test fails
+		models.User = createUserModel(sequelize, DataTypes);
+		await models.User.sync().catch(err => { throw err });
 		return (
 			// Creates the user instance
-			models.User.create({
+			await models.User.create({
 				username: "Testuser",
 				password: "testpass123"
 			})
-				.then(user => {
+				.then(async (user) => {
 					// Assigns it to the `instances`object
 					instances.user = user;
 					expect(instances.user).not.toBe(undefined);
 
 					// Runs the `removeInstances` function
-					return removeInstances(instances, models)
-						.then(() => {
+					return await removeInstances(instances, models)
+						.then(async () => {
 							// The value in the `instances` object should now be undefined
 							expect(instances.user).toBe(undefined);
 
 							// Assures the object was actually deleted from the database
-							models.User.findOne({ where: { username: "Testuser" } })
+							return await models.User.findOne({ where: { username: "Testuser" } })
 								.then((foundUser) => {
-									expect(foundUser).toBe(null)
+									return expect(foundUser).toBe(null)
 								})
 
 								// Error management
