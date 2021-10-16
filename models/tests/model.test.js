@@ -24,8 +24,8 @@ describe("Tests the testing database system", () => {
 		sequelize = getTestDatabase();
 	});
 
-	afterAll(() => {
-		return removeTestDatabase(sequelize);
+	afterAll(async () => {
+		return await removeTestDatabase(sequelize).catch(err => { throw err });
 	});
 
 	it("tests the creation of the tables", () => {

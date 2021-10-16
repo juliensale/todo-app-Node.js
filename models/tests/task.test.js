@@ -1,77 +1,100 @@
-const { createUserModel } = require('../user');
-const { createListModel } = require('../list');
-const { createSublistModel } = require('../sublist');
-const { createTaskModel } = require('../task');
-const { Sequelize, DataTypes } = require('sequelize');
+'use strict'
 
-// Setting DB up
-const sequelize = new Sequelize({
-	dialect: 'sqlite',
-	storage: './db-test.sqlite',
-	logging: false
-});
+const { DataTypes } = require('sequelize');
+const { createModels, removeInstances, getTestDatabase, removeTestDatabase } = require('../../testingFunctions');
+
 
 describe("Testing the Task model", () => {
-	let User;
-	let user;
-	let List;
-	let list;
-	let Sublist;
-	let sublist;
-	let Task;
-	let task;
-	beforeAll(() => {
-		User = createUserModel(sequelize, DataTypes);
-		List = createListModel(sequelize, DataTypes, User);
-		Sublist = createSublistModel(sequelize, DataTypes, User, List);
-		Task = createTaskModel(sequelize, DataTypes, User, Sublist);
-		User.sync();
-		List.sync();
-		Sublist.sync();
-		Task.sync();
+	// Defining global objects
+	let sequelize;
+	let models = {
+		User: undefined,
+		List: undefined,
+		Sublist: undefined,
+		Task: undefined,
+		Subtask: undefined
+	}
+	let instances = {
+		user: undefined,
+		list: undefined,
+		sublist: undefined,
+		task: undefined,
+		subtask1: undefined,
+		subtask2: undefined
+	}
+	beforeAll(async () => {
+		// Setting DB up
+		sequelize = getTestDatabase();
+
+		// Creating the models
+		return await sequelize.authenticate()
+			.then(async () => {
+				return await createModels(sequelize, DataTypes, models).catch(err => { throw err });
+			})
+			.catch((err) => { throw err });
 	})
 
 	beforeEach(async () => {
-		user = await User.create({
+		// Creating default instances for each unit test
+		instances.user = await models.User.create({
 			username: "TestUser",
 			password: "testpass123"
-		});
-		list = await List.create({
+		}).catch(err => { throw err })
+
+		instances.list = await models.List.create({
 			title: "Test list",
 			color: "#ffffff",
-			UserId: user.id
-		})
-		sublist = await Sublist.create({
+			UserId: instances.user.id
+		}).catch(err => { throw err });
+
+		instances.sublist = await models.Sublist.create({
 			title: "Test sublist",
-			UserId: user.id,
-			ListId: list.id
-		})
-		task = await Task.create({
+			UserId: instances.user.id,
+			ListId: instances.list.id
+		}).catch(err => { throw err });
+
+		instances.task = await models.Task.create({
 			title: "Test task",
-			UserId: user.id,
-			SublistId: sublist.id
-		})
+			UserId: instances.user.id,
+			SublistId: instances.sublist.id
+		}).catch(err => { throw err });
+
+		instances.subtask1 = await models.Task.create({
+			title: "Test subtask 1",
+			UserId: instances.user.id,
+			TaskId: instances.task.id
+		}).catch(err => { throw err });
+
+		instances.subtask2 = await models.Task.create({
+			title: "Test subtask 2",
+			UserId: instances.user.id,
+			TaskId: instances.task.id
+		}).catch(err => { throw err });
 	})
 
 	afterEach(async () => {
-		await user.destroy();
-		await list.destroy();
-		await sublist.destroy();
-		await task.destroy();
-		User.sync();
-		List.sync();
-		Sublist.sync();
-		Task.sync();
+		// Deleting the instances from the database after each test
+		return await removeInstances(instances, models).catch(err => { throw err });
+	})
+
+	afterAll(async () => {
+		// Cleaning the database
+		return await removeTestDatabase(sequelize).catch(err => { throw err });
 	})
 
 	it("assures the `setCompleted` method is a function", () => {
-		expect(task.setCompleted).toBeInstanceOf(Function);
+		expect(instances.task.setCompleted).toBeInstanceOf(Function);
 	})
 	it("test the `setCompleted` method", async () => {
-		expect(task.completed).toBe(false);
-		await task.setCompleted(true);
-		expect(task.completed).toBe(true);
-		await task.setCompleted(false);
-		expect(task.completed).toBe(false);
+		// Checks initial state
+		expect(instances.task.completed).toBe(false);
+
+		// Checks running for `true`
+		await instances.task.setCompleted(true).catch(err => { throw err });
+		expect(instances.task.completed).toBe(true);
+
+		// Checks running for `false`
+		await instances.task.setCompleted(false).catch(err => { throw err });
+		expect(instances.task.completed).toBe(false);
 	})
 });
