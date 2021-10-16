@@ -59,13 +59,13 @@ describe("Testing the Task model", () => {
 			SublistId: instances.sublist.id
 		}).catch(err => { throw err });
 
-		instances.subtask1 = await models.Task.create({
+		instances.subtask1 = await models.Subtask.create({
 			title: "Test subtask 1",
 			UserId: instances.user.id,
 			TaskId: instances.task.id
 		}).catch(err => { throw err });
 
-		instances.subtask2 = await models.Task.create({
+		instances.subtask2 = await models.Subtask.create({
 			title: "Test subtask 2",
 			UserId: instances.user.id,
 			TaskId: instances.task.id
