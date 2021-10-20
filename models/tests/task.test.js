@@ -1,7 +1,7 @@
 'use strict'
 
 const { DataTypes } = require('sequelize');
-const { createModels, removeInstances, getTestDatabase, removeTestDatabase } = require('../../testingFunctions');
+const { createModels, removeInstances } = require('../../testingFunctions');
 
 
 describe("Testing the Task model", () => {
@@ -24,7 +24,7 @@ describe("Testing the Task model", () => {
 	}
 	beforeAll(async () => {
 		// Setting DB up
-		sequelize = getTestDatabase();
+		sequelize = global.sequelize;
 
 		// Creating the models
 		return await sequelize.authenticate()
@@ -75,11 +75,6 @@ describe("Testing the Task model", () => {
 	afterEach(async () => {
 		// Deleting the instances from the database after each test
 		return await removeInstances(instances, models).catch(err => { throw err });
-	})
-
-	afterAll(async () => {
-		// Cleaning the database
-		return await removeTestDatabase(sequelize).catch(err => { throw err });
 	})
 
 	it("assures the `setCompleted` method is a function", () => {

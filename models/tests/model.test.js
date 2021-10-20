@@ -1,7 +1,7 @@
 'use strict'
 
 const { DataTypes } = require('sequelize');
-const { createModels, removeInstances, removeTestDatabase, getTestDatabase } = require('../../testingFunctions');
+const { createModels, removeInstances } = require('../../testingFunctions');
 const createUserModel = require('../createModel/createUser');
 
 
@@ -20,13 +20,9 @@ describe("Tests the testing database system", () => {
 	};
 
 	beforeAll(() => {
-		// Setting DB up
-		sequelize = getTestDatabase();
-	});
+		sequelize = global.sequelize
+	})
 
-	afterAll(async () => {
-		return await removeTestDatabase(sequelize).catch(err => { throw err });
-	});
 
 	it("tests the creation of the tables", () => {
 

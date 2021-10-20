@@ -8,16 +8,13 @@ const { unlinkSync } = require('fs');
 
 const getTestDatabase = () => new Sequelize({ dialect: 'sqlite', storage: './db-test.sqlite', logging: false });
 
-const removeTestDatabase = async (sequelize) => {
-	await sequelize.close()
-		.then(() => {
-			try {
-				unlinkSync('./db-test.sqlite');
-			} catch {
-				// Do nothing if the Database was not created first
-			}
-		})
-		.catch(err => { throw err });
+const removeTestDatabase = (sequelize) => {
+	let queryInterface = sequelize.getQueryInterface();
+	queryInterface.sequelize.connectionManager.connections.default.close() // manually close the sqlite connection which sequelize.close() omits
+	try {
+		// Wait for the connection to close before deleting the file
+		setTimeout(() => unlinkSync('./db-test.sqlite'), 300);
+	} catch (error) { }
 };
 
 const createModels = async (sequelize, DataTypes, models) => {
@@ -44,9 +41,9 @@ const removeInstances = async (instances, models) => {
 	}
 
 
-	for (const [key, value] of Object.entries(instances)) {
+	for (const [key, value] of Object.entries(models)) {
 		if (value !== undefined) {
-			await value.sync().catch(err => { throw err })
+			models[key] = await value.sync().catch(err => { throw err });
 		}
 	}
 }
