@@ -20,6 +20,8 @@ const createSubtaskModel = (sequelize, DataTypes, User, Task) => {
 	Subtask.User = Subtask.belongsTo(User);
 	Subtask.Task = Subtask.belongsTo(Task);
 
+	Task.prototype.getSubtaskModel = () => Subtask
+
 	return Subtask
 }
 

@@ -92,4 +92,15 @@ describe("Testing the Task model", () => {
 		await instances.task.setCompleted(false).catch(err => { throw err });
 		expect(instances.task.completed).toBe(false);
 	})
+
+	it("assures the `getSubtaskModel` method is a function", () => {
+
+		expect(instances.task.getSubtaskModel).toBeInstanceOf(Function)
+	})
+
+	it("tests the `getSubtaskModel` method returns the Subtask model", () => {
+		const SubtaskModel = instances.task.getSubtaskModel();
+		expect(SubtaskModel).not.toBe(undefined)
+		expect(SubtaskModel).toBe(models.Subtask)
+	})
 });

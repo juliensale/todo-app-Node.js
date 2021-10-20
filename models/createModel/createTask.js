@@ -1,6 +1,10 @@
 const { Model } = require('sequelize');
 const createTaskModel = (sequelize, DataTypes, User, Sublist) => {
 	class Task extends Model {
+		getSubtaskModel() {
+			return undefined
+		}
+
 		async setCompleted(completed) {
 			this.completed = completed;
 			await this.save().catch(err => { throw err });
