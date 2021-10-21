@@ -39,10 +39,20 @@ const createSubtaskModel = (sequelize, DataTypes, User, Task) => {
 
 	Task.prototype.getSubtaskModel = () => Subtask
 
-	Subtask.addHook('afterCreate', async (book) => {
-		await Task.findOne({ where: { id: book.TaskId } })
+	Subtask.addHook('afterCreate', async (subtask) => {
+		await Task.findOne({ where: { id: subtask.TaskId } })
 			.then(async task => await task.setCompleted(false))
 			.catch(err => { throw err });
+	})
+
+	Subtask.addHook('afterDestroy', async (subtask) => {
+		await Task.findOne({ where: { id: subtask.TaskId } })
+			.then(async task => {
+				if (task) {
+					return await task.checkComplete()
+				}
+			})
+			.catch(err => { throw err })
 	})
 
 	return Subtask

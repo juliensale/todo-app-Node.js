@@ -180,4 +180,58 @@ describe("Testing the Subktask model", () => {
 
 		await newSubtask.destroy();
 	})
+
+	it("should call the `checkComplete` method of the mother task on subtask deletion", async () => {
+		const newSubtask = await models.Subtask.create({
+			title: "New subtask",
+			UserId: instances.user.id,
+			TaskId: instances.task.id
+		})
+
+		instances.subtask1.completed = true;
+		await instances.subtask1.save();
+		instances.subtask2.completed = true;
+		await instances.subtask2.save();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+		expect(newSubtask.completed).toBe(false);
+
+		await newSubtask.destroy();
+
+		await instances.task.reload();
+		await instances.subtask1.reload();
+		await instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+	});
+
+	it("should not complete the mother task on every deletion", async () => {
+		const newSubtask = await models.Subtask.create({
+			title: "New subtask",
+			UserId: instances.user.id,
+			TaskId: instances.task.id
+		})
+
+		instances.subtask1.completed = true;
+		await instances.subtask1.save();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(false);
+		expect(newSubtask.completed).toBe(false);
+
+		await newSubtask.destroy();
+
+		await instances.task.reload();
+		await instances.subtask1.reload();
+		await instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(false);
+	})
 });
