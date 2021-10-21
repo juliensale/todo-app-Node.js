@@ -34,7 +34,6 @@ const createTaskModel = (sequelize, DataTypes, User, Sublist) => {
 		async checkComplete() {
 			const Subtask = this.getSubtaskModel()
 			if (Subtask) {
-				var shouldBeCompleted = true;
 				await Subtask.findAll({ where: { TaskId: this.id } })
 					.then(subtasks => {
 						// returns true only if all the subtasks are completed
