@@ -151,4 +151,33 @@ describe("Testing the Subktask model", () => {
 		expect(instances.subtask1.completed).toBe(false);
 		expect(instances.subtask2.completed).toBe(true);
 	})
+
+	it("should uncomplete the mother task on subtask creation", async () => {
+		instances.task.completed = true;
+		await instances.task.save();
+		instances.subtask1.completed = true;
+		await instances.subtask1.save();
+		instances.subtask2.completed = true;
+		await instances.subtask2.save();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+
+		const newSubtask = await models.Subtask.create({
+			title: "New subtask",
+			UserId: instances.user.id,
+			TaskId: instances.task.id
+		})
+
+		await instances.task.reload();
+		await instances.subtask1.reload();
+		await instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+
+		await newSubtask.destroy();
+	})
 });
