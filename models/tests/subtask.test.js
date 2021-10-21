@@ -126,4 +126,29 @@ describe("Testing the Subktask model", () => {
 		expect(instances.subtask1.completed).toBe(true);
 		expect(instances.subtask2.completed).toBe(true);
 	})
+
+	it("assures the `uncomplete` method is a function", () => {
+		expect(instances.subtask1.uncomplete).toBeInstanceOf(Function);
+	});
+
+	it("should uncomplete both the subtask and its mother task", async () => {
+		instances.task.completed = true;
+		await instances.task.save();
+		instances.subtask1.completed = true;
+		await instances.subtask1.save();
+		instances.subtask2.completed = true;
+		await instances.subtask2.save();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+
+		await instances.subtask1.uncomplete();
+		await instances.task.reload();
+		await instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(false);
+		expect(instances.subtask2.completed).toBe(true);
+	})
 });
