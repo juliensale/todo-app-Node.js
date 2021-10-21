@@ -6,6 +6,16 @@ const createSubtaskModel = (sequelize, DataTypes, User, Task) => {
 			this.completed = completed;
 			await this.save().catch(err => { throw err });
 		}
+
+		async complete() {
+			await this.setCompleted(true)
+				.then(async () => {
+					return await Task.findOne({ where: { id: this.TaskId } })
+						.then(async task => await task.checkComplete())
+						.catch(err => { throw err })
+				})
+				.catch(err => { throw err })
+		}
 	}
 	Subtask.init({
 		title: {

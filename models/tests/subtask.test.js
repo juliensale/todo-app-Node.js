@@ -93,4 +93,37 @@ describe("Testing the Subktask model", () => {
 		await instances.subtask1.setCompleted(false).catch(err => { throw err });
 		expect(instances.subtask1.completed).toBe(false);
 	})
+
+	it("assures the `complete` method is a function", () => {
+		expect(instances.subtask1.complete).toBeInstanceOf(Function);
+	});
+
+	it("should complete the subtask but not complete the mother task", async () => {
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(false);
+		expect(instances.subtask2.completed).toBe(false);
+
+		await instances.subtask1.complete();
+		await instances.task.reload();
+		await instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(false);
+	});
+	it("should complete the mother task", async () => {
+		instances.subtask2.completed = true;
+		await instances.subtask2.save();
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(false);
+		expect(instances.subtask2.completed).toBe(true);
+
+		await instances.subtask1.complete();
+		await instances.task.reload();
+		await instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+	})
 });
