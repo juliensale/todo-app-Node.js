@@ -166,6 +166,85 @@ describe("Testing the Task model", () => {
 		expect(instances.subtask1.completed).toBe(false);
 		expect(instances.subtask2.completed).toBe(false);
 		expect(instances.subtaskControl.completed).toBe(true);
-
 	});
+
+	it("assures the `checkComplete` method is a function", () => {
+		expect(instances.task.checkComplete).toBeInstanceOf(Function);
+	})
+
+	it("should not complete the task", async () => {
+		instances.subtask1.completed = true;
+		await instances.subtask1.save();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(false);
+
+		await instances.task.checkComplete();
+		instances.subtask1.reload();
+		instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(false);
+	})
+
+	it("should complete the task", async () => {
+		instances.subtask1.completed = true;
+		await instances.subtask1.save();
+		instances.subtask2.completed = true;
+		await instances.subtask2.save();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+
+		await instances.task.checkComplete();
+		instances.subtask1.reload();
+		instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+	})
+
+	it("should not uncomplete the task", async () => {
+		instances.task.completed = true;
+		await instances.task.save();
+		instances.subtask1.completed = true;
+		await instances.subtask1.save();
+		instances.subtask2.completed = true;
+		await instances.subtask2.save();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+
+		await instances.task.checkComplete();
+		instances.subtask1.reload();
+		instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+	})
+
+	it("should uncomplete the task", async () => {
+		instances.task.completed = true;
+		await instances.task.save();
+		instances.subtask1.completed = true;
+		await instances.subtask1.save();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(false);
+
+		await instances.task.checkComplete();
+		instances.subtask1.reload();
+		instances.subtask2.reload();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(false);
+	})
 });

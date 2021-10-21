@@ -31,6 +31,22 @@ const createTaskModel = (sequelize, DataTypes, User, Sublist) => {
 			}
 		}
 
+		async checkComplete() {
+			const Subtask = this.getSubtaskModel()
+			if (Subtask) {
+				var shouldBeCompleted = true;
+				await Subtask.findAll({ where: { TaskId: this.id } })
+					.then(subtasks => {
+						// returns true only if all the subtasks are completed
+						const shouldBeCompleted = subtasks.map(subtask => subtask.completed).reduce((previousValue, currentValue) => (previousValue && currentValue), true);
+						this.setCompleted(shouldBeCompleted);
+					})
+					.catch(err => { throw err })
+
+			}
+
+		}
+
 		async setCompleted(completed) {
 			this.completed = completed;
 			await this.save().catch(err => { throw err });
