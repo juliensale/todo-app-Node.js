@@ -5,6 +5,32 @@ const createTaskModel = (sequelize, DataTypes, User, Sublist) => {
 			return undefined
 		}
 
+		async complete() {
+			await this.setCompleted(true)
+			const Subtask = this.getSubtaskModel()
+			if (Subtask) {
+				await Subtask.findAll({ where: { TaskId: this.id } })
+					.then(async subtasks => {
+						return await subtasks.forEach(async subtask => await subtask.setCompleted(true))
+					})
+					.catch(err => { throw err })
+
+			}
+		}
+
+		async uncomplete() {
+			await this.setCompleted(false)
+			const Subtask = this.getSubtaskModel()
+			if (Subtask) {
+				await Subtask.findAll({ where: { TaskId: this.id } })
+					.then(async subtasks => {
+						return await subtasks.forEach(async subtask => await subtask.setCompleted(false))
+					})
+					.catch(err => { throw err })
+
+			}
+		}
+
 		async setCompleted(completed) {
 			this.completed = completed;
 			await this.save().catch(err => { throw err });

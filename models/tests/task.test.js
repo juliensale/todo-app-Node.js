@@ -20,7 +20,9 @@ describe("Testing the Task model", () => {
 		sublist: undefined,
 		task: undefined,
 		subtask1: undefined,
-		subtask2: undefined
+		subtask2: undefined,
+		taskControl: undefined,
+		subtaskControl: undefined
 	}
 	beforeAll(async () => {
 		// Setting DB up
@@ -70,6 +72,18 @@ describe("Testing the Task model", () => {
 			UserId: instances.user.id,
 			TaskId: instances.task.id
 		}).catch(err => { throw err });
+
+		instances.taskControl = await models.Task.create({
+			title: "Control Task",
+			UserId: instances.user.id,
+			SublistId: instances.sublist.id
+		}).catch(err => { throw err });
+
+		instances.subtaskControl = await models.Subtask.create({
+			title: "Control Subtask",
+			UserId: instances.user.id,
+			TaskId: instances.taskControl.id
+		})
 	})
 
 	afterEach(async () => {
@@ -94,13 +108,64 @@ describe("Testing the Task model", () => {
 	})
 
 	it("assures the `getSubtaskModel` method is a function", () => {
-
-		expect(instances.task.getSubtaskModel).toBeInstanceOf(Function)
-	})
+		expect(instances.task.getSubtaskModel).toBeInstanceOf(Function);
+	});
 
 	it("tests the `getSubtaskModel` method returns the Subtask model", () => {
 		const SubtaskModel = instances.task.getSubtaskModel();
-		expect(SubtaskModel).not.toBe(undefined)
-		expect(SubtaskModel).toBe(models.Subtask)
-	})
+		expect(SubtaskModel).not.toBe(undefined);
+		expect(SubtaskModel).toBe(models.Subtask);
+	});
+
+	it("assures the `complete` method is a function", () => {
+		expect(instances.task.complete).toBeInstanceOf(Function);
+	});
+
+	it("should complete both the task and its subtasks", async () => {
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(false);
+		expect(instances.subtask2.completed).toBe(false);
+		expect(instances.subtaskControl.completed).toBe(false);
+
+		await instances.task.complete();
+		await instances.subtask1.reload();
+		await instances.subtask2.reload();
+		await instances.subtaskControl.reload();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+		expect(instances.subtaskControl.completed).toBe(false);
+	});
+
+	it("assures the `uncomplete` method is a function", () => {
+		expect(instances.task.uncomplete).toBeInstanceOf(Function);
+	});
+
+	it("should uncomplete both the task and its subtasks", async () => {
+		instances.task.completed = true;
+		await instances.task.save();
+		instances.subtask1.completed = true;
+		await instances.subtask1.save();
+		instances.subtask2.completed = true;
+		await instances.subtask2.save();
+		instances.subtaskControl.completed = true;
+		await instances.subtaskControl.save();
+
+		expect(instances.task.completed).toBe(true);
+		expect(instances.subtask1.completed).toBe(true);
+		expect(instances.subtask2.completed).toBe(true);
+		expect(instances.subtaskControl.completed).toBe(true);
+
+		await instances.task.uncomplete();
+		await instances.subtask1.reload();
+		await instances.subtask2.reload();
+		await instances.subtaskControl.reload();
+
+		expect(instances.task.completed).toBe(false);
+		expect(instances.subtask1.completed).toBe(false);
+		expect(instances.subtask2.completed).toBe(false);
+		expect(instances.subtaskControl.completed).toBe(true);
+
+	});
 });
