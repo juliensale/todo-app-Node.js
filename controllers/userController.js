@@ -15,11 +15,8 @@ const register = (req, res) => {
 			res.status(400).send('Invalid credentials.');
 		};
 
-		// Secure password with SHA256
-		const secure_password = sha256(password);
-
 		// Creates the user instance
-		User.create({ username: username, password: secure_password })
+		User.create({ username: username, password: password })
 			.then(() => {
 				// Creates JWT Token for later use
 				const token = jwt.sign({ username: username }, process.env.TOKEN_KEY);
@@ -46,8 +43,6 @@ const login = (req, res) => {
 			res.status(400).send('Invalid credentials.');
 		};
 
-		// Secure password with SHA256
-		const secure_password = sha256(password);
 
 		// Connects the user
 		User.findOne({ where: { username: username } })
@@ -55,7 +50,7 @@ const login = (req, res) => {
 				if (!user) {
 					return res.status(400).send('No user found with this username.');
 				}
-				if (user.password === secure_password) {
+				if (user.password === password) {
 					// Creates JWT Token for later use
 					const token = jwt.sign({ username: username }, process.env.TOKEN_KEY);
 					res.status(201).send({ authentication_token: token });
