@@ -13,7 +13,7 @@ const createUserController = (User) => {
 				!(typeof (username) === 'string' && username
 					&& typeof (password) === 'string' && password)
 			) {
-				res.status(400).send('Invalid credentials.');
+				return res.status(400).send('Invalid credentials.');
 			};
 
 			// Creates the user instance
@@ -23,8 +23,11 @@ const createUserController = (User) => {
 					const token = jwt.sign({ username: username }, process.env.TOKEN_KEY);
 					res.status(201).send({ authentication_token: token });
 				})
-				.catch(() => {
-					res.status(500).send('Server error.')
+				.catch((err) => {
+					if (err.errors[0].message === 'username must be unique') {
+						return res.status(400).send('This username is already used.')
+					}
+					return res.status(500).send('Server error.')
 				})
 
 		} catch {
