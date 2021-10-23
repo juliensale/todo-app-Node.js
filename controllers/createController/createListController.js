@@ -83,7 +83,7 @@ const createListController = (User, List) => {
 				if (!(
 					(title ? typeof (title) === 'string' : true)
 					&& (color ? (typeof (color) === 'string') : true)
-				)) {
+				) || (!title && !color)) {
 					return res.status(400).send('Invalid credentials.')
 				}
 
@@ -92,7 +92,7 @@ const createListController = (User, List) => {
 					.then(async (list) => {
 						// Missing list
 						if (!list) {
-							return res.status(404).send('List not found.');
+							return res.status(404).send('No list found.');
 						}
 
 						// Updating it
