@@ -256,91 +256,92 @@ describe("Tests the user controller", () => {
 				})
 				.expect(403, done);
 		});
+
+		it("should not find a list", (done) => {
+			request(app)
+				.patch('/list/wrongid')
+				.set('AuthenticationToken', authToken)
+				.send({
+					title: "Test"
+				})
+				.expect('No list found.')
+				.expect(404, done);
+		});
+
+		it("should change the list title", (done) => {
+			request(app)
+				.patch(`/list/${instances.list1.id}`)
+				.set('AuthenticationToken', authToken)
+				.send({
+					title: "Test update"
+				})
+				.expect(result => {
+					const list = result.body;
+					expect(list.title).toBe("Test update");
+				})
+				.expect(200, done);
+		});
+
+		it("should change the list color", (done) => {
+			request(app)
+				.patch(`/list/${instances.list1.id}`)
+				.set('AuthenticationToken', authToken)
+				.send({
+					color: "#aaaaaa"
+				})
+				.expect(result => {
+					const list = result.body;
+					expect(list.color).toBe("#aaaaaa");
+				})
+				.expect(200, done);
+		});
+
+		it("should change the list title & color", (done) => {
+			request(app)
+				.patch(`/list/${instances.list1.id}`)
+				.set('AuthenticationToken', authToken)
+				.send({
+					title: "Test update",
+					color: "#aaaaaa"
+				})
+				.expect(result => {
+					const list = result.body;
+					expect(list.title).toBe("Test update");
+					expect(list.color).toBe("#aaaaaa");
+				})
+				.expect(200, done);
+		});
+
+		it("should not accept a non-string title", (done) => {
+			request(app)
+				.patch(`/list/${instances.list1.id}`)
+				.set('AuthenticationToken', authToken)
+				.send({
+					title: 5
+				})
+				.expect('Invalid credentials.')
+				.expect(400, done);
+		});
+
+		it("should not accept a non-string color", (done) => {
+			request(app)
+				.patch(`/list/${instances.list1.id}`)
+				.set('AuthenticationToken', authToken)
+				.send({
+					color: 5
+				})
+				.expect('Invalid credentials.')
+				.expect(400, done);
+		});
+
+		it("should fail correctly without a body", (done) => {
+			request(app)
+				.patch(`/list/${instances.list1.id}`)
+				.set('AuthenticationToken', authToken)
+				.expect('Invalid credentials.')
+				.expect(400, done);
+		});
 	});
 
-	it("should not find a list", (done) => {
-		request(app)
-			.patch('/list/wrongid')
-			.set('AuthenticationToken', authToken)
-			.send({
-				title: "Test"
-			})
-			.expect('No list found.')
-			.expect(404, done);
-	});
-
-	it("should change the list title", (done) => {
-		request(app)
-			.patch(`/list/${instances.list1.id}`)
-			.set('AuthenticationToken', authToken)
-			.send({
-				title: "Test update"
-			})
-			.expect(result => {
-				const list = result.body;
-				expect(list.title).toBe("Test update");
-			})
-			.expect(200, done);
-	});
-
-	it("should change the list color", (done) => {
-		request(app)
-			.patch(`/list/${instances.list1.id}`)
-			.set('AuthenticationToken', authToken)
-			.send({
-				color: "#aaaaaa"
-			})
-			.expect(result => {
-				const list = result.body;
-				expect(list.color).toBe("#aaaaaa");
-			})
-			.expect(200, done);
-	});
-
-	it("should change the list title & color", (done) => {
-		request(app)
-			.patch(`/list/${instances.list1.id}`)
-			.set('AuthenticationToken', authToken)
-			.send({
-				title: "Test update",
-				color: "#aaaaaa"
-			})
-			.expect(result => {
-				const list = result.body;
-				expect(list.title).toBe("Test update");
-				expect(list.color).toBe("#aaaaaa");
-			})
-			.expect(200, done);
-	});
-
-	it("should not accept a non-string title", (done) => {
-		request(app)
-			.patch(`/list/${instances.list1.id}`)
-			.set('AuthenticationToken', authToken)
-			.send({
-				title: 5
-			})
-			.expect('Invalid credentials.')
-			.expect(400, done);
-	});
-
-	it("should not accept a non-string color", (done) => {
-		request(app)
-			.patch(`/list/${instances.list1.id}`)
-			.set('AuthenticationToken', authToken)
-			.send({
-				color: 5
-			})
-			.expect('Invalid credentials.')
-			.expect(400, done);
-	});
-
-	it("should fail correctly without a body", (done) => {
-		request(app)
-			.patch(`/list/${instances.list1.id}`)
-			.set('AuthenticationToken', authToken)
-			.expect('Invalid credentials.')
-			.expect(400, done);
-	});
 
 });
