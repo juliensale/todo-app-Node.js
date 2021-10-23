@@ -129,6 +129,7 @@ const createListController = (User, List) => {
 			// Finding the list
 			List.findOne({ where: { id: req.params.id, UserId: user.id } })
 				.then(async (list) => {
+					// Missing list
 					if (!list) {
 						return res.status(404).send('No list found.');
 					}
@@ -136,15 +137,13 @@ const createListController = (User, List) => {
 					// Deleting
 					return await list.destroy()
 						.then(() => {
-							return res.status(205).send('List deleted.');
+							return res.status(204).send()
 						})
-						.catch(err => {
-							console.log(err);
+						.catch(() => {
 							return res.status(500).send('Server error.')
 						})
 				})
-				.catch(err => {
-					console.log(err);
+				.catch(() => {
 					return res.status(500).send('Server error.')
 				})
 		}

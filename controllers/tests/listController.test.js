@@ -43,6 +43,7 @@ describe("Tests the user controller", () => {
 						app.get('/list/:id', listController.list_details_get);
 						app.post('/list', listController.list_create);
 						app.patch('/list/:id', listController.list_update);
+						app.delete('/list/:id', listController.list_delete);
 					})
 					.catch(err => { throw err });
 			})
@@ -343,5 +344,30 @@ describe("Tests the user controller", () => {
 		});
 	});
 
+	describe("Tests the 'list_delete' controller", () => {
+		// We can limit to testing the absence of AuthenticationToken since every fail based on authentication is managed the same way
+		it("should fail because of the authentication", (done) => {
+			request(app)
+				.delete(`/list/${instances.list1.id}`)
+				.expect('Authentication required. Set `AuthenticationToken` header with the authentication token.')
+				.expect(403, done);
+		});
+
+		it("should not find the list", (done) => {
+			request(app)
+				.delete('/list/wrongid')
+				.set('AuthenticationToken', authToken)
+				.expect('No list found.')
+				.expect(404, done);
+		});
+
+		it("should delete the list", (done) => {
+			request(app)
+				.delete(`/list/${instances.list1.id}`)
+				.set('AuthenticationToken', authToken)
+				.expect(204)
+				.end(done);
+		})
+	})
 
 });
