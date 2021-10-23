@@ -75,7 +75,7 @@ describe("Tests the authentication middleware", () => {
 		request(app)
 			.get('/is-authenticated')
 			.set('AuthenticationToken', token)
-			// .expect('User does not exist.')
+			.expect('User does not exist.')
 			.expect(403, done);
 	});
 
