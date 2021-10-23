@@ -29,8 +29,7 @@ const createListController = (User, List) => {
 					}
 					res.status(200).send(list);
 				})
-				.catch(err => {
-					console.log(err);
+				.catch(() => {
 					res.status(500).send('Server error.')
 				})
 		}
