@@ -41,6 +41,7 @@ describe("Tests the user controller", () => {
 						const listController = createListController(models.User, models.List);
 						app.get('/list', listController.list_get);
 						app.get('/list/:id', listController.list_details_get);
+						app.post('/list', listController.list_create);
 					})
 					.catch(err => { throw err });
 			})
@@ -105,6 +106,7 @@ describe("Tests the user controller", () => {
 	})
 
 	describe("Tests the 'list_details_get' controller", () => {
+		// We can limit to testing the absence of AuthenticationToken since every fail based on authentication is managed the same way
 		it("should fail because of the authentication", (done) => {
 			request(app)
 				.get(`/list/${instances.list1.id}`)
@@ -136,6 +138,101 @@ describe("Tests the user controller", () => {
 					expect(result.body.title).toBe(instances.list1.title);
 				})
 				.expect(200, done);
+		});
+
+	})
+
+	describe("Tests the 'list_create' controller", () => {
+		// We can limit to testing the absence of AuthenticationToken since every fail based on authentication is managed the same way
+		it("should fail because of the authentication", (done) => {
+			request(app)
+				.post("/list")
+				.send({
+					title: "ShouldNotExist"
+				})
+				.expect('Authentication required. Set `AuthenticationToken` header with the authentication token.')
+				.expect(async () => {
+					await models.List.findOne({ where: { title: "ShouldNotExist" } })
+						.then(list => {
+							expect(list).toBe(null)
+						})
+						.catch(err => { throw err })
+				})
+				.expect(403, done);
+		});
+
+		it("should create a list with the default color", (done) => {
+			request(app)
+				.post('/list')
+				.set('AuthenticationToken', authToken)
+				.send({
+					title: "Test list"
+				})
+				.expect(result => {
+					const list = result.body;
+					expect(list.title).toBe("Test list");
+					expect(list.UserId).toBe(instances.user.id);
+				})
+				.expect(201, done);
+		})
+
+		it("should create a list with the default color", (done) => {
+			request(app)
+				.post('/list')
+				.set('AuthenticationToken', authToken)
+				.send({
+					title: "Test list",
+					color: "#fefefe"
+				})
+				.expect(result => {
+					const list = result.body;
+					expect(list.title).toBe("Test list");
+					expect(list.color).toBe("#fefefe");
+					expect(list.UserId).toBe(instances.user.id);
+				})
+				.expect(201, done);
+		});
+
+		it("should not accept a non-string title", (done) => {
+			request(app)
+				.post('/list')
+				.set('AuthenticationToken', authToken)
+				.send({
+					title: 4
+				})
+				.expect('Invalid credentials.')
+				.expect(400, done);
+		});
+
+		it("should not accept a non-string color", (done) => {
+			request(app)
+				.post('/list')
+				.set('AuthenticationToken', authToken)
+				.send({
+					title: "Test list",
+					color: 4
+				})
+				.expect('Invalid credentials.')
+				.expect(400, done);
+		});
+
+		it("should require the title", (done) => {
+			request(app)
+				.post('/list')
+				.set('AuthenticationToken', authToken)
+				.send({
+					color: 4
+				})
+				.expect('Invalid credentials.')
+				.expect(400, done);
+		});
+
+		it("should fail correctly without a body", (done) => {
+			request(app)
+				.post('/list')
+				.set('AuthenticationToken', authToken)
+				.expect('Invalid credentials.')
+				.expect(400, done);
 		});
 
 	})
