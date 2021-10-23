@@ -38,7 +38,6 @@ describe("Tests the user controller", () => {
 						const userController = createUserController(models.User);
 						app.post('/register', userController.register);
 						app.post('/login', userController.login);
-						app.get('/get-info', userController.get_info);
 					})
 					.catch(err => { throw err });
 			})

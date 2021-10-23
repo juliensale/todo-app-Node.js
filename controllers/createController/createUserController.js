@@ -73,14 +73,8 @@ const createUserController = (User) => {
 		}
 	}
 
-	const get_info = async (req, res) => {
-		const [err, user] = await isAuthenticated(req, res);
-		if (!err) {
-			res.status(200).send(user);
-		}
-	}
 
-	return { register, login, get_info }
+	return { register, login }
 
 }
 
