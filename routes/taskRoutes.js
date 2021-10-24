@@ -21,4 +21,7 @@ router.delete('/:id', taskController.task_delete);
 // Complete
 router.post('/:id/complete', taskController.task_complete);
 
+// Uncomplete
+router.post('/:id/uncomplete', taskController.task_uncomplete);
+
 module.exports = router;

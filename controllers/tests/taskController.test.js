@@ -51,6 +51,7 @@ describe("Tests the user controller", () => {
 						app.patch('/task/:id', taskController.task_update);
 						app.delete('/task/:id', taskController.task_delete);
 						app.post('/task/:id/complete', taskController.task_complete);
+						app.post('/task/:id/uncomplete', taskController.task_uncomplete);
 					})
 					.catch(err => { throw err });
 			})
@@ -434,6 +435,71 @@ describe("Tests the user controller", () => {
 		it("should not find the task", (done) => {
 			request(app)
 				.post('/task/56487989654/complete')
+				.set('AuthenticationToken', authToken)
+				.expect('No task found.')
+				.expect(404, done)
+		})
+	})
+
+	describe("Tests the 'task_uncomplete' controller", () => {
+
+		beforeEach(async () => {
+			instances.task1.completed = true;
+			await instances.task1.save();
+			instances.subtask11.completed = true;
+			await instances.subtask11.save();
+			instances.subtask12.completed = true;
+			await instances.subtask12.save();
+		})
+
+		// We can limit to testing the absence of AuthenticationToken since every fail based on authentication is managed the same way
+		it("should fail because of the authentication", (done) => {
+			expect(instances.task1.completed).toBe(true);
+
+			request(app)
+				.post(`/task/${instances.task1.id}/uncomplete`)
+				.expect('Authentication required. Set `AuthenticationToken` header with the authentication token.')
+				.expect(async () => {
+					await instances.task1.reload()
+						.then(() => {
+							expect(instances.task1.completed).toBe(true)
+						})
+						.catch(err => { throw err });
+				})
+				.expect(403, done);
+		});
+
+		it("should uncomplete the task1 and its subtask", (done) => {
+			expect(instances.task1.completed).toBe(true);
+			expect(instances.subtask11.completed).toBe(true);
+			expect(instances.subtask12.completed).toBe(true);
+
+			request(app)
+				.post(`/task/${instances.task1.id}/uncomplete`)
+				.set('AuthenticationToken', authToken)
+				.expect(async () => {
+					await instances.task1.reload()
+						.then(() => {
+							expect(instances.task1.completed).toBe(false)
+						})
+						.catch(err => { throw err });
+					await instances.subtask11.reload()
+						.then(() => {
+							expect(instances.subtask11.completed).toBe(false)
+						})
+						.catch(err => { throw err });
+					await instances.subtask12.reload()
+						.then(() => {
+							expect(instances.subtask12.completed).toBe(false)
+						})
+						.catch(err => { throw err });
+				})
+				.expect(200, done)
+		})
+
+		it("should not find the task", (done) => {
+			request(app)
+				.post('/task/56487989654/uncomplete')
 				.set('AuthenticationToken', authToken)
 				.expect('No task found.')
 				.expect(404, done)
