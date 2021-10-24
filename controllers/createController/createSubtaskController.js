@@ -162,7 +162,31 @@ const createSubtaskController = (User, Subtask) => {
 		}
 	}
 
-	return { subtask_get, subtask_details_get, subtask_create, subtask_update, subtask_delete, subtask_complete };
+	const subtask_uncomplete = async (req, res) => {
+		const [err, user] = await isAuthenticated(req, res);
+		if (!err) {
+			Subtask.findOne({ where: { id: req.params.id, UserId: user.id } })
+				.then(async (subtask) => {
+					if (!subtask) {
+						return res.status(404).send('No subtask found.')
+					}
+
+					// Uncompleting
+					await subtask.uncomplete()
+						.then(() => {
+							return res.status(200).send()
+						})
+						.catch(() => {
+							return res.status(500).send('Server error.')
+						})
+				})
+				.catch(() => {
+					return res.status(500).send('Server error.')
+				})
+		}
+	}
+
+	return { subtask_get, subtask_details_get, subtask_create, subtask_update, subtask_delete, subtask_complete, subtask_uncomplete };
 }
 
 module.exports = createSubtaskController;

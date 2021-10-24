@@ -169,7 +169,7 @@ const createTaskController = (User, Task) => {
 						return res.status(404).send('No task found.');
 					}
 
-					// Completing
+					// Uncompleting
 					return await task.uncomplete()
 						.then(() => {
 							return res.status(200).send()

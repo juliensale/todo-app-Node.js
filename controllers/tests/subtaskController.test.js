@@ -51,6 +51,7 @@ describe("Tests the user controller", () => {
 						app.patch('/subtask/:id', subtaskController.subtask_update);
 						app.delete('/subtask/:id', subtaskController.subtask_delete);
 						app.post('/subtask/:id/complete', subtaskController.subtask_complete);
+						app.post('/subtask/:id/uncomplete', subtaskController.subtask_uncomplete);
 					})
 					.catch(err => { throw err });
 			})
@@ -474,4 +475,67 @@ describe("Tests the user controller", () => {
 		});
 	});
 
+	describe("Tests the 'subtask_uncomplete' controller", () => {
+		beforeEach(async () => {
+			instances.task.completed = true;
+			await instances.task.save();
+			instances.subtask1.completed = true;
+			await instances.subtask1.save();
+			instances.subtask2.completed = true;
+			await instances.subtask2.save();
+		})
+
+		// We can limit to testing the absence of AuthenticationToken since every fail based on authentication is managed the same way
+		it("should fail because of the authentication", (done) => {
+			expect(instances.subtask1.completed).toBe(true);
+
+			request(app)
+				.post(`/subtask/${instances.subtask1.id}/uncomplete`)
+				.expect('Authentication required. Set `AuthenticationToken` header with the authentication token.')
+				.expect(async () => {
+					await instances.subtask1.reload()
+						.then(() => {
+							expect(instances.subtask1.completed).toBe(true);
+						})
+						.catch(err => { throw err })
+				})
+				.expect(403, done);
+		});
+
+		it("should not find the subtask", (done) => {
+			request(app)
+				.post('/subtask/65498494/uncomplete')
+				.set('AuthenticationToken', authToken)
+				.expect('No subtask found.')
+				.expect(404, done);
+		});
+
+		it("should complete the subtask but not the mother task", (done) => {
+			expect(instances.task.completed).toBe(true);
+			expect(instances.subtask1.completed).toBe(true);
+			expect(instances.subtask2.completed).toBe(true);
+
+			request(app)
+				.post(`/subtask/${instances.subtask1.id}/uncomplete`)
+				.set('AuthenticationToken', authToken)
+				.expect(async () => {
+					await instances.task.reload()
+						.then(() => {
+							expect(instances.task.completed).toBe(false);
+						})
+						.catch(err => { throw err });
+					await instances.subtask1.reload()
+						.then(() => {
+							expect(instances.subtask1.completed).toBe(false);
+						})
+						.catch(err => { throw err });
+					await instances.subtask2.reload()
+						.then(() => {
+							expect(instances.subtask2.completed).toBe(true);
+						})
+						.catch(err => { throw err });
+				})
+				.expect(200, done);
+		});
+	});
 });
