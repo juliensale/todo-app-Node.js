@@ -137,8 +137,32 @@ const createTaskController = (User, Task) => {
 		}
 	}
 
+	const task_complete = async (req, res) => {
+		const [err, user] = await isAuthenticated(req, res);
+		if (!err) {
+			Task.findOne({ where: { id: req.params.id, UserId: user.id } })
+				.then(async (task) => {
+					if (!task) {
+						return res.status(404).send('No task found.');
+					}
 
-	return { task_get, task_details_get, task_create, task_update, task_delete };
+					// Completing
+					return await task.complete()
+						.then(() => {
+							return res.status(200).send()
+						})
+						.catch(() => {
+							return res.status(500).send('Server error.')
+						})
+				})
+				.catch(() => {
+					return res.status(500).send('Server error.')
+				})
+		}
+	}
+
+
+	return { task_get, task_details_get, task_create, task_update, task_delete, task_complete };
 }
 
 module.exports = createTaskController;

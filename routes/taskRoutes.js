@@ -18,4 +18,7 @@ router.patch('/:id', taskController.task_update);
 // Delete
 router.delete('/:id', taskController.task_delete);
 
+// Complete
+router.post('/:id/complete', taskController.task_complete);
+
 module.exports = router;
