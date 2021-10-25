@@ -9,7 +9,7 @@ const createListModel = (sequelize, DataTypes, User) => {
 			defaultValue: "#000000"
 		}
 	});
-	List.User = List.belongsTo(User);
+	List.User = List.belongsTo(User, { onDelete: 'cascade' });
 	return List
 }
 

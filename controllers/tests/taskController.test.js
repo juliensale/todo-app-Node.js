@@ -412,18 +412,18 @@ describe("Tests the user controller", () => {
 			request(app)
 				.post(`/task/${instances.task1.id}/complete`)
 				.set('AuthenticationToken', authToken)
-				.expect(async () => {
-					await instances.task1.reload()
+				.expect(() => {
+					instances.task1.reload()
 						.then(() => {
 							expect(instances.task1.completed).toBe(true)
 						})
 						.catch(err => { throw err });
-					await instances.subtask11.reload()
+					instances.subtask11.reload()
 						.then(() => {
 							expect(instances.subtask11.completed).toBe(true)
 						})
 						.catch(err => { throw err });
-					await instances.subtask12.reload()
+					instances.subtask12.reload()
 						.then(() => {
 							expect(instances.subtask12.completed).toBe(true)
 						})
@@ -477,18 +477,18 @@ describe("Tests the user controller", () => {
 			request(app)
 				.post(`/task/${instances.task1.id}/uncomplete`)
 				.set('AuthenticationToken', authToken)
-				.expect(async () => {
-					await instances.task1.reload()
+				.expect(() => {
+					instances.task1.reload()
 						.then(() => {
 							expect(instances.task1.completed).toBe(false)
 						})
 						.catch(err => { throw err });
-					await instances.subtask11.reload()
+					instances.subtask11.reload()
 						.then(() => {
 							expect(instances.subtask11.completed).toBe(false)
 						})
 						.catch(err => { throw err });
-					await instances.subtask12.reload()
+					instances.subtask12.reload()
 						.then(() => {
 							expect(instances.subtask12.completed).toBe(false)
 						})

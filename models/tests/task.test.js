@@ -247,4 +247,14 @@ describe("Testing the Task model", () => {
 		expect(instances.subtask1.completed).toBe(true);
 		expect(instances.subtask2.completed).toBe(false);
 	})
+
+	it("should delete the task in cascade", async () => {
+		await instances.sublist.destroy().catch(err => { throw err });
+		await models.Task.findOne({ where: { id: instances.task.id } })
+			.then(task => {
+				expect(task).toBe(null);
+			})
+			.catch(err => { throw err })
+
+	});
 });

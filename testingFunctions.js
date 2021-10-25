@@ -56,11 +56,20 @@ const createModels = async (sequelize, DataTypes, models) => {
 
 const removeInstances = async (instances, models) => {
 	for (const [key, value] of Object.entries(instances)) {
-		await value.destroy()
-			.then(() => {
-				instances[key] = undefined
-			})
-			.catch(err => { throw err })
+		if (value !== undefined) {
+
+			await value.reload()
+				.then(async () => {
+					return await value.destroy()
+						.then(() => {
+							instances[key] = undefined;
+						})
+						.catch(err => { throw err })
+				})
+				.catch(() => {
+					instances[key] = undefined;
+				})
+		}
 	}
 
 

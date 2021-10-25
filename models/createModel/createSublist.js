@@ -10,7 +10,7 @@ const createSublistModel = (sequelize, DataTypes, User, List) => {
 	}, { sequelize, modelName: 'Sublist' });
 
 	Sublist.User = Sublist.belongsTo(User);
-	Sublist.List = Sublist.belongsTo(List);
+	Sublist.List = Sublist.belongsTo(List, { onDelete: 'cascade' });
 	return Sublist
 };
 

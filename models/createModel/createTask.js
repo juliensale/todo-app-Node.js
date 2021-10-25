@@ -62,7 +62,7 @@ const createTaskModel = (sequelize, DataTypes, User, Sublist) => {
 		}
 	}, { sequelize, modelName: 'Task' });
 	Task.User = Task.belongsTo(User);
-	Task.Sublist = Task.belongsTo(Sublist);
+	Task.Sublist = Task.belongsTo(Sublist, { onDelete: 'cascade' });
 
 	return Task
 }

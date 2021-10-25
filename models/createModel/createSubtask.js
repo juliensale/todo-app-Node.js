@@ -35,7 +35,7 @@ const createSubtaskModel = (sequelize, DataTypes, User, Task) => {
 		}
 	}, { sequelize, modelName: 'Subtask' });
 	Subtask.User = Subtask.belongsTo(User);
-	Subtask.Task = Subtask.belongsTo(Task);
+	Subtask.Task = Subtask.belongsTo(Task, { onDelete: 'cascade' });
 
 	Task.prototype.getSubtaskModel = () => Subtask
 

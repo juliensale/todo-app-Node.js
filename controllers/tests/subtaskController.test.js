@@ -420,18 +420,18 @@ describe("Tests the user controller", () => {
 			request(app)
 				.post(`/subtask/${instances.subtask1.id}/complete`)
 				.set('AuthenticationToken', authToken)
-				.expect(async () => {
-					await instances.task.reload()
+				.expect(() => {
+					instances.task.reload()
 						.then(() => {
 							expect(instances.task.completed).toBe(false);
 						})
 						.catch(err => { throw err });
-					await instances.subtask1.reload()
+					instances.subtask1.reload()
 						.then(() => {
 							expect(instances.subtask1.completed).toBe(true);
 						})
 						.catch(err => { throw err });
-					await instances.subtask2.reload()
+					instances.subtask2.reload()
 						.then(() => {
 							expect(instances.subtask2.completed).toBe(false);
 						})
@@ -452,18 +452,18 @@ describe("Tests the user controller", () => {
 					request(app)
 						.post(`/subtask/${instances.subtask1.id}/complete`)
 						.set('AuthenticationToken', authToken)
-						.expect(async () => {
-							await instances.task.reload()
+						.expect(() => {
+							instances.task.reload()
 								.then(() => {
 									expect(instances.task.completed).toBe(true);
 								})
 								.catch(err => { throw err });
-							await instances.subtask1.reload()
+							instances.subtask1.reload()
 								.then(() => {
 									expect(instances.subtask1.completed).toBe(true);
 								})
 								.catch(err => { throw err });
-							await instances.subtask2.reload()
+							instances.subtask2.reload()
 								.then(() => {
 									expect(instances.subtask2.completed).toBe(true);
 								})
@@ -510,7 +510,7 @@ describe("Tests the user controller", () => {
 				.expect(404, done);
 		});
 
-		it("should complete the subtask but not the mother task", (done) => {
+		it("should uncomplete the subtask but not the mother task", (done) => {
 			expect(instances.task.completed).toBe(true);
 			expect(instances.subtask1.completed).toBe(true);
 			expect(instances.subtask2.completed).toBe(true);
@@ -518,18 +518,18 @@ describe("Tests the user controller", () => {
 			request(app)
 				.post(`/subtask/${instances.subtask1.id}/uncomplete`)
 				.set('AuthenticationToken', authToken)
-				.expect(async () => {
-					await instances.task.reload()
+				.expect(() => {
+					instances.task.reload()
 						.then(() => {
 							expect(instances.task.completed).toBe(false);
 						})
 						.catch(err => { throw err });
-					await instances.subtask1.reload()
+					instances.subtask1.reload()
 						.then(() => {
 							expect(instances.subtask1.completed).toBe(false);
 						})
 						.catch(err => { throw err });
-					await instances.subtask2.reload()
+					instances.subtask2.reload()
 						.then(() => {
 							expect(instances.subtask2.completed).toBe(true);
 						})
