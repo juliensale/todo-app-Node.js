@@ -4,7 +4,7 @@ const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const createSchema = require('../../createSchema');
 const request = require('supertest');
-const { DataTypes } = require('sequelize');
+const { DataTypes, Utils } = require('sequelize');
 const { createModels, removeInstances } = require('../../../testingFunctions');
 
 const jwt = require('jsonwebtoken');
@@ -114,7 +114,7 @@ describe("Testing the Task model", () => {
 				`
 				})
 				.expect(result => {
-					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken'.")
+					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.")
 				})
 				.end(done)
 		});
@@ -144,4 +144,66 @@ describe("Testing the Task model", () => {
 		})
 	})
 
+	describe("Tests the 'list' query", () => {
+		const postData = (id) => ({
+			query: `query list($id: Int!){
+				list(id: $id) {
+					title
+					color
+				}
+			} `,
+			variables: {
+				id: id
+			}
+		});
+
+		it("should ask for the authentication token", (done) => {
+			request(app)
+				.post('/graphql')
+				.send(postData(instances.list1.id))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.");
+				})
+				.end(done);
+		});
+
+		// incorrect id
+		it("should not find any list", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(56487987))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.");
+				})
+				.end(done);
+		});
+
+		// id corresponds to someone else's list
+		it("should not allow access to a list that does not belong to the authenticated user", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.listControl.id))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.");
+				})
+				.end(done);
+		});
+
+		// correct id
+		it("should find list1", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.list1.id))
+				.expect(result => {
+					const list = result.body.data.list;
+					expect(list.title).toBe(instances.list1.title);
+				})
+				.end(done);
+		});
+
+
+	})
 });
