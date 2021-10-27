@@ -1,7 +1,8 @@
 const express = require('express');
 const sequelize = require('./database');
 require('dotenv').config();
-const { isAuthenticated } = require('./middleware/authentication');
+const { graphqlHTTP } = require('express-graphql');
+const schema = require('./schema/index');
 
 const userRoutes = require('./routes/userRoutes');
 const listRoutes = require('./routes/listRoutes');
@@ -20,19 +21,20 @@ sequelize.authenticate()
 	})
 	.catch(() => console.log('Failed connecting to DB.'));
 
+
+// GrahpQL	
+
+app.use('/graphql', graphqlHTTP({
+	schema,
+	graphiql: true
+}))
+
 // Register view engine
 app.set('view engine', 'ejs');
 
 // middleware
 app.use(express.json())
 
-// Test authentication
-// app.get('/test-auth', async (req, res) => {
-// 	const [err, user] = await isAuthenticated(req, res);
-// 	if (!err) {
-// 		res.send('Authenticated')
-// 	}
-// });
 
 // User routes
 app.use('/user', userRoutes);
