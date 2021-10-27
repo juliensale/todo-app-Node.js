@@ -12,7 +12,7 @@ require('dotenv').config();
 
 
 
-describe("Testing the List queries", () => {
+describe("Testing the Sublist queries", () => {
 	// Defining global objects
 	let sequelize;
 	let models = {
@@ -24,10 +24,12 @@ describe("Testing the List queries", () => {
 	}
 	let instances = {
 		user: undefined,
-		list1: undefined,
-		list2: undefined,
+		list: undefined,
+		sublist1: undefined,
+		sublist2: undefined,
 		userControl: undefined,
-		listControl: undefined
+		listControl: undefined,
+		sublistControl: undefined
 	}
 
 	const username = "TestUser"
@@ -69,16 +71,22 @@ describe("Testing the List queries", () => {
 			password: "testpass123"
 		}).catch(err => { throw err });
 
-		instances.list1 = await models.List.create({
-			title: "Test list 1",
-			color: "#ffffff",
+		instances.list = await models.List.create({
+			title: "Test list",
+			color: "#fe57a2",
 			UserId: instances.user.id
 		}).catch(err => { throw err });
 
-		instances.list2 = await models.List.create({
-			title: "Test list 2",
-			color: "#ffffff",
-			UserId: instances.user.id
+		instances.sublist1 = await models.Sublist.create({
+			title: "Test sublist 1",
+			UserId: instances.user.id,
+			ListId: instances.list.id
+		}).catch(err => { throw err });
+
+		instances.sublist2 = await models.Sublist.create({
+			title: "Test sublist 2",
+			UserId: instances.user.id,
+			ListId: instances.list.id
 		}).catch(err => { throw err });
 
 		instances.userControl = await models.User.create({
@@ -91,6 +99,12 @@ describe("Testing the List queries", () => {
 			color: "#f153e5",
 			UserId: instances.userControl.id
 		}).catch(err => { throw err });
+
+		instances.sublistControl = await models.Sublist.create({
+			title: "Sublist control",
+			UserId: instances.userControl.id,
+			ListId: instances.listControl.id
+		})
 	});
 
 	afterEach(async () => {
@@ -98,7 +112,7 @@ describe("Testing the List queries", () => {
 		return await removeInstances(instances, models).catch(err => { throw err });
 	});
 
-	describe("Tests the 'lists' query", () => {
+	describe("Tests the 'sublists' query", () => {
 
 		it("should ask for the authentication token", (done) => {
 			request(app)
@@ -106,9 +120,8 @@ describe("Testing the List queries", () => {
 				.send({
 					query: `
 				{
-					lists {
+					sublists {
 						title
-						color
 					}
 				}
 				`
@@ -119,37 +132,35 @@ describe("Testing the List queries", () => {
 				.end(done)
 		});
 
-		it("should return list1 and list2, but not the control list", (done) => {
+		it("should return sublist1 and sublist2, but not the control sublist", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
 				.send({
 					query: `
 				{
-					lists {
+					sublists {
 						title
-						color
 					}
 				}	
 				`
 				})
 				.expect(result => {
-					const lists = result.body.data.lists
-					expect(lists.length).toBe(2)
-					expect(lists[0].title).toBe(instances.list1.title)
-					expect(lists[1].title).toBe(instances.list2.title)
+					const sublists = result.body.data.sublists
+					expect(sublists.length).toBe(2)
+					expect(sublists[0].title).toBe(instances.sublist1.title)
+					expect(sublists[1].title).toBe(instances.sublist2.title)
 				})
 				.end(done);
 
 		})
 	})
 
-	describe("Tests the 'list' query", () => {
+	describe("Tests the 'sublist' query", () => {
 		const postData = (id) => ({
-			query: `query list($id: Int!){
-				list(id: $id) {
+			query: `query sublist($id: Int!){
+				sublist(id: $id) {
 					title
-					color
 				}
 			} `,
 			variables: {
@@ -160,7 +171,7 @@ describe("Testing the List queries", () => {
 		it("should ask for the authentication token", (done) => {
 			request(app)
 				.post('/graphql')
-				.send(postData(instances.list1.id))
+				.send(postData(instances.sublist1.id))
 				.expect(result => {
 					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.");
 				})
@@ -168,38 +179,38 @@ describe("Testing the List queries", () => {
 		});
 
 		// incorrect id
-		it("should not find any list", (done) => {
+		it("should not find any sublist", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
 				.send(postData(56487987))
 				.expect(result => {
-					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.");
+					expect(JSON.parse(result.text).errors[0].message).toBe("No sublist found.");
 				})
 				.end(done);
 		});
 
 		// id corresponds to someone else's list
-		it("should not allow access to a list that does not belong to the authenticated user", (done) => {
+		it("should not allow access to a sublist that does not belong to the authenticated user", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(instances.listControl.id))
+				.send(postData(instances.sublistControl.id))
 				.expect(result => {
-					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.");
+					expect(JSON.parse(result.text).errors[0].message).toBe("No sublist found.");
 				})
 				.end(done);
 		});
 
 		// correct id
-		it("should find list1", (done) => {
+		it("should find sublist1", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(instances.list1.id))
+				.send(postData(instances.sublist1.id))
 				.expect(result => {
-					const list = result.body.data.list;
-					expect(list.title).toBe(instances.list1.title);
+					const sublist = result.body.data.sublist;
+					expect(sublist.title).toBe(instances.sublist1.title);
 				})
 				.end(done);
 		});
