@@ -4,16 +4,19 @@ const { GraphQLObjectType, GraphQLSchema } = graphql;
 
 const createSchema = (User, List, Sublist, Task, Subtask) => {
 
-	const { list, lists, sublist, sublists } = createQueries(User, List, Sublist, Task, Subtask);
+	const {
+		list, lists,
+		sublist, sublists,
+		task, tasks
+	} = createQueries(User, List, Sublist, Task, Subtask);
 
 
 	const RootQuery = new GraphQLObjectType({
 		name: "RootQueryType",
 		fields: {
-			list,
-			lists,
-			sublist,
-			sublists
+			list, lists,
+			sublist, sublists,
+			task, tasks
 		}
 	})
 

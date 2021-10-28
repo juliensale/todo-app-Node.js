@@ -1,5 +1,5 @@
 const graphql = require('graphql');
-const { GraphQLObjectType, GraphQLString, GraphQLInt, } = graphql;
+const { GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLList } = graphql;
 
 
 const createTypes = (List, Sublist, Task, Subtask) => {
@@ -11,7 +11,7 @@ const createTypes = (List, Sublist, Task, Subtask) => {
 			title: { type: GraphQLString },
 			color: { type: GraphQLString },
 			sublists: {
-				type: new graphql.GraphQLList(SublistType),
+				type: new GraphQLList(SublistType),
 				resolve(parent, args) {
 					return Sublist.findAll({ where: { ListId: parent.id } });
 				}
@@ -30,11 +30,32 @@ const createTypes = (List, Sublist, Task, Subtask) => {
 				resolve(parent, args) {
 					return List.findOne({ where: { id: parent.ListId } });
 				}
+			},
+			tasks: {
+				type: new GraphQLList(TaskType),
+				resolve(parent, args) {
+					return Task.findAll({ where: { SublistId: parent.id } })
+				}
 			}
 		})
 	});
 
-	return { ListType, SublistType };
+	const TaskType = new GraphQLObjectType({
+		name: "Task",
+		fields: () => ({
+			id: { type: GraphQLInt },
+			title: { type: GraphQLString },
+			SublistId: { type: GraphQLInt },
+			sublist: {
+				type: SublistType,
+				resolve(parent, args) {
+					return Sublist.findOne({ where: { id: parent.SublistId } });
+				}
+			}
+		})
+	})
+
+	return { ListType, SublistType, TaskType };
 }
 
 module.exports = createTypes;
