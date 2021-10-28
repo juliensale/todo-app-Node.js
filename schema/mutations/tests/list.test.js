@@ -171,5 +171,115 @@ describe("Testing the List queries", () => {
 		});
 	});
 
+	describe("Tests the editList mutation", () => {
+		const postData = (id, title, color) => {
+			const query = `mutation editList($id: Int!,$title: String, $color: String){
+						editList(id: $id, title: $title, color: $color) {
+							title
+							color
+						}
+					}`
+			var variables = {
+				id: id
+			}
+			if (title) {
+				variables['title'] = title;
+			}
+			if (color) {
+				variables['color'] = color;
+			}
+
+			return {
+				query: query,
+				variables: variables
+			}
+		};
+		it("should ask for the authentication token", (done) => {
+			request(app)
+				.post('/graphql')
+				.send(postData(instances.list1.id, "Test create list", "#121212"))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.")
+				})
+				.end(done)
+		})
+
+
+		it("should not find any list", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(899879847, "Test edit", "#154ea1"))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.");
+				})
+				.end(done);
+		});
+
+		it("should not let the authenticated user edit the list", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.listControl.id, "Test edit", "#15ea14"))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.");
+				})
+				.end(done);
+		});
+
+		it("should change the title of the list1", (done) => {
+			const title = "Test edit";
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.list1.id, title))
+				.expect(result => {
+					const list = result.body.data.editList;
+					expect(list.title).toBe(title);
+				})
+				.end(done);
+		});
+
+		it("should change the color of the list1", (done) => {
+			const color = "#e2e2e2";
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.list1.id, null, color))
+				.expect(result => {
+					const list = result.body.data.editList;
+					expect(list.color).toBe(color);
+				})
+				.end(done);
+		});
+
+		it("should change both the color and the title of the list1", (done) => {
+			const title = "Test edit"
+			const color = "#e2e2e2";
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.list1.id, title, color))
+				.expect(result => {
+					const list = result.body.data.editList;
+					expect(list.title).toBe(title);
+					expect(list.color).toBe(color);
+				})
+				.end(done);
+		});
+
+		it("should do nothing", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.list1.id))
+				.expect(result => {
+					const list = result.body.data.editList;
+					expect(list.title).toBe("Test list 1");
+				})
+				.end(done);
+		});
+	});
+
 
 });
