@@ -12,7 +12,7 @@ require('dotenv').config();
 
 
 
-describe("Testing the Task queries", () => {
+describe("Testing the Subtask queries", () => {
 	// Defining global objects
 	let sequelize;
 	let models = {
@@ -26,12 +26,14 @@ describe("Testing the Task queries", () => {
 		user: undefined,
 		list: undefined,
 		sublist: undefined,
-		task1: undefined,
-		task2: undefined,
+		task: undefined,
+		subtask1: undefined,
+		subtask2: undefined,
 		userControl: undefined,
 		listControl: undefined,
 		sublistControl: undefined,
-		taskControl: undefined
+		taskControl: undefined,
+		subtaskControl: undefined
 	}
 
 	const username = "TestUser"
@@ -85,16 +87,22 @@ describe("Testing the Task queries", () => {
 			ListId: instances.list.id
 		}).catch(err => { throw err });
 
-		instances.task1 = await models.Task.create({
-			title: "Test task 1",
+		instances.task = await models.Task.create({
+			title: "Test task",
 			UserId: instances.user.id,
 			SublistId: instances.sublist.id
 		})
 
-		instances.task2 = await models.Task.create({
-			title: "Test task 2",
+		instances.subtask1 = await models.Subtask.create({
+			title: "Test subtask 1",
 			UserId: instances.user.id,
-			SublistId: instances.sublist.id
+			TaskId: instances.task.id
+		})
+
+		instances.subtask2 = await models.Subtask.create({
+			title: "Test subtask 2",
+			UserId: instances.user.id,
+			TaskId: instances.task.id
 		})
 
 		instances.userControl = await models.User.create({
@@ -119,6 +127,12 @@ describe("Testing the Task queries", () => {
 			UserId: instances.userControl.id,
 			SublistId: instances.sublistControl.id
 		})
+
+		instances.subtaskControl = await models.Subtask.create({
+			title: "Subtask control",
+			UserId: instances.userControl.id,
+			TaskId: instances.taskControl.id
+		})
 	});
 
 	afterEach(async () => {
@@ -126,7 +140,7 @@ describe("Testing the Task queries", () => {
 		return await removeInstances(instances, models).catch(err => { throw err });
 	});
 
-	describe("Tests the 'tasks' query", () => {
+	describe("Tests the 'subtasks' query", () => {
 
 		it("should ask for the authentication token", (done) => {
 			request(app)
@@ -134,7 +148,7 @@ describe("Testing the Task queries", () => {
 				.send({
 					query: `
 				{
-					tasks {
+					subtasks {
 						title
 					}
 				}
@@ -146,34 +160,34 @@ describe("Testing the Task queries", () => {
 				.end(done)
 		});
 
-		it("should return task1 and task2, but not the control task", (done) => {
+		it("should return subtask1 and subtask2, but not the control subtask", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
 				.send({
 					query: `
 				{
-					tasks {
+					subtasks {
 						title
 					}
 				}	
 				`
 				})
 				.expect(result => {
-					const tasks = result.body.data.tasks
-					expect(tasks.length).toBe(2)
-					expect(tasks[0].title).toBe(instances.task1.title)
-					expect(tasks[1].title).toBe(instances.task2.title)
+					const subtasks = result.body.data.subtasks
+					expect(subtasks.length).toBe(2)
+					expect(subtasks[0].title).toBe(instances.subtask1.title)
+					expect(subtasks[1].title).toBe(instances.subtask2.title)
 				})
 				.end(done);
 
 		})
 	})
 
-	describe("Tests the 'task' query", () => {
+	describe("Tests the 'subtask' query", () => {
 		const postData = (id) => ({
-			query: `query task($id: Int!){
-				task(id: $id) {
+			query: `query subtask($id: Int!){
+				subtask(id: $id) {
 					title
 				}
 			} `,
@@ -185,7 +199,7 @@ describe("Testing the Task queries", () => {
 		it("should ask for the authentication token", (done) => {
 			request(app)
 				.post('/graphql')
-				.send(postData(instances.task1.id))
+				.send(postData(instances.subtask1.id))
 				.expect(result => {
 					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.");
 				})
@@ -193,38 +207,38 @@ describe("Testing the Task queries", () => {
 		});
 
 		// incorrect id
-		it("should not find any task", (done) => {
+		it("should not find any subtask", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
 				.send(postData(56487987))
 				.expect(result => {
-					expect(JSON.parse(result.text).errors[0].message).toBe("No task found.");
+					expect(JSON.parse(result.text).errors[0].message).toBe("No subtask found.");
 				})
 				.end(done);
 		});
 
-		// id corresponds to someone else's task
-		it("should not allow access to a task that does not belong to the authenticated user", (done) => {
+		// id corresponds to someone else's subtask
+		it("should not allow access to a subtask that does not belong to the authenticated user", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
 				.send(postData(instances.taskControl.id))
 				.expect(result => {
-					expect(JSON.parse(result.text).errors[0].message).toBe("No task found.");
+					expect(JSON.parse(result.text).errors[0].message).toBe("No subtask found.");
 				})
 				.end(done);
 		});
 
 		// correct id
-		it("should find task1", (done) => {
+		it("should find subktask1", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(instances.task1.id))
+				.send(postData(instances.subtask1.id))
 				.expect(result => {
-					const task = result.body.data.task;
-					expect(task.title).toBe(instances.task1.title);
+					const subtask = result.body.data.subtask;
+					expect(subtask.title).toBe(instances.subtask1.title);
 				})
 				.end(done);
 		});

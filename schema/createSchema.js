@@ -7,7 +7,8 @@ const createSchema = (User, List, Sublist, Task, Subtask) => {
 	const {
 		list, lists,
 		sublist, sublists,
-		task, tasks
+		task, tasks,
+		subtask, subtasks
 	} = createQueries(User, List, Sublist, Task, Subtask);
 
 
@@ -16,7 +17,8 @@ const createSchema = (User, List, Sublist, Task, Subtask) => {
 		fields: {
 			list, lists,
 			sublist, sublists,
-			task, tasks
+			task, tasks,
+			subtask, subtasks
 		}
 	})
 

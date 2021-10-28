@@ -51,11 +51,32 @@ const createTypes = (List, Sublist, Task, Subtask) => {
 				resolve(parent, args) {
 					return Sublist.findOne({ where: { id: parent.SublistId } });
 				}
+			},
+			subtasks: {
+				type: new GraphQLList(SubtaskType),
+				resolve(parent, args) {
+					return Subtask.findAll({ where: { TaskId: parent.id } })
+				}
 			}
 		})
 	})
 
-	return { ListType, SublistType, TaskType };
+	const SubtaskType = new GraphQLObjectType({
+		name: "Subtask",
+		fields: () => ({
+			id: { type: GraphQLInt },
+			title: { type: GraphQLString },
+			TaskId: { type: GraphQLInt },
+			task: {
+				type: TaskType,
+				resolve(parent, args) {
+					return Task.findOne({ where: { id: parent.TaskId } })
+				}
+			}
+		})
+	})
+
+	return { ListType, SublistType, TaskType, SubtaskType };
 }
 
 module.exports = createTypes;
