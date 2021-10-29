@@ -12,7 +12,7 @@ require('dotenv').config();
 
 
 
-describe("Testing the List mutations", () => {
+describe("Testing the Sublist mutations", () => {
 	// Defining global objects
 	let sequelize;
 	let models = {
@@ -24,10 +24,12 @@ describe("Testing the List mutations", () => {
 	}
 	let instances = {
 		user: undefined,
-		list1: undefined,
-		list2: undefined,
+		list: undefined,
+		sublist1: undefined,
+		sublist2: undefined,
 		userControl: undefined,
-		listControl: undefined
+		listControl: undefined,
+		sublistControl: undefined
 	}
 
 	const username = "TestUser"
@@ -69,16 +71,22 @@ describe("Testing the List mutations", () => {
 			password: "testpass123"
 		}).catch(err => { throw err });
 
-		instances.list1 = await models.List.create({
-			title: "Test list 1",
-			color: "#ffffff",
+		instances.list = await models.List.create({
+			title: "Test list",
+			color: "#e123a4",
 			UserId: instances.user.id
 		}).catch(err => { throw err });
 
-		instances.list2 = await models.List.create({
-			title: "Test list 2",
-			color: "#ffffff",
-			UserId: instances.user.id
+		instances.sublist1 = await models.Sublist.create({
+			title: "Test sublist 1",
+			UserId: instances.user.id,
+			ListId: instances.list.id
+		}).catch(err => { throw err });
+
+		instances.sublist2 = await models.Sublist.create({
+			title: "Test sublist 2",
+			UserId: instances.user.id,
+			ListId: instances.list.id
 		}).catch(err => { throw err });
 
 		instances.userControl = await models.User.create({
@@ -91,6 +99,12 @@ describe("Testing the List mutations", () => {
 			color: "#f153e5",
 			UserId: instances.userControl.id
 		}).catch(err => { throw err });
+
+		instances.sublistControl = await models.Sublist.create({
+			title: "Sublist control",
+			UserId: instances.userControl.id,
+			ListId: instances.listControl.id
+		}).catch(err => { throw err });
 	});
 
 	afterEach(async () => {
@@ -98,85 +112,89 @@ describe("Testing the List mutations", () => {
 		return await removeInstances(instances, models).catch(err => { throw err });
 	});
 
-	describe("Tests the createList mutation", () => {
-		const postData = (title, color) => {
-			const query = `mutation createList($title: String!, $color: String){
-						createList(title: $title, color: $color) {
+	describe("Tests the createSublist mutation", () => {
+		const postData = (ListId, title) => ({
+			query: `mutation createSublist($ListId: Int!, $title: String!){
+						createSublist(ListId: $ListId, title: $title) {
 							title
-							color
 						}
-					}`
-			var variables = {
+					}`,
+			variables: {
+				ListId: ListId,
 				title: title
 			}
-
-			if (color) {
-				variables['color'] = color
-			}
-
-			return {
-				query: query,
-				variables: variables
-			}
-		};
+		});
 		it("should ask for the authentication token", (done) => {
 			request(app)
 				.post('/graphql')
-				.send(postData("Test create list", "#121212"))
+				.send(postData(instances.list.id, "Test create sublist"))
 				.expect(result => {
 					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.")
 				})
 				.end(done)
 		})
 
-		it("should create a new list for the authenticated user with the default color", (done) => {
-			const title = "Test create list"
+		it("should create a new sublist for the authenticated user", (done) => {
+			const title = "Test create sublist"
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(title))
+				.send(postData(instances.list.id, title))
 				.expect(result => {
-					const list = result.body.data.createList;
-					expect(list.title).toBe(title);
-					models.List.findOne({ where: { title: title } })
-						.then(list => {
-							expect(list).not.toBe(null);
-							expect(list.UserId).toBe(instances.user.id);
-							list.destroy();
+					const sublist = result.body.data.createSublist;
+					expect(sublist.title).toBe(title);
+					models.Sublist.findOne({ where: { title: title } })
+						.then(sublist => {
+							expect(sublist).not.toBe(null);
+							expect(sublist.UserId).toBe(instances.user.id);
+							expect(sublist.ListId).toBe(instances.list.id);
+							sublist.destroy();
 						});
 				})
 				.end(done);
 		});
 
-		it("should create a new list for the authenticated user with a specified color", (done) => {
-			const title = "Test create list";
-			const color = "#1e235e";
+		it("should not create a new sublist if the ListId is invalid", (done) => {
+			const title = "Test create sublist"
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(title, color))
+				.send(postData(549884, title))
 				.expect(result => {
-					const list = result.body.data.createList;
-					expect(list.title).toBe(title);
-					expect(list.color).toBe(color);
-					models.List.findOne({ where: { title: title } })
-						.then(list => {
-							expect(list).not.toBe(null);
-							expect(list.UserId).toBe(instances.user.id);
-							expect(list.color).toBe(color);
-							list.destroy();
-						});
+					expect(JSON.parse(result.text).errors[0].message).toBe('Invalid ListId.')
+					models.Sublist.findOne({ where: { title: title } })
+						.then(sublist => {
+							expect(sublist).toBe(null);
+						})
+						.catch(err => { throw err });
 				})
-				.end(done);
-		});
+				.end(done)
+		})
+
+		it("should not create a new sublist if the list does not belong to the authenticated user", (done) => {
+			const title = "Test create sublist"
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.listControl.id, title))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe('Invalid ListId.')
+					models.Sublist.findOne({ where: { title: title } })
+						.then(sublist => {
+							expect(sublist).toBe(null);
+						})
+						.catch(err => { throw err });
+				})
+				.end(done)
+
+		})
 	});
 
-	describe("Tests the editList mutation", () => {
-		const postData = (id, title, color) => {
-			const query = `mutation editList($id: Int!,$title: String, $color: String){
-						editList(id: $id, title: $title, color: $color) {
+	describe("Tests the editSublist mutation", () => {
+		const postData = (id, title) => {
+			const query = `mutation editSublist($id: Int!,$title: String){
+						editSublist(id: $id, title: $title) {
 							title
-							color
 						}
 					}`
 			var variables = {
@@ -185,9 +203,6 @@ describe("Testing the List mutations", () => {
 			if (title) {
 				variables['title'] = title;
 			}
-			if (color) {
-				variables['color'] = color;
-			}
 
 			return {
 				query: query,
@@ -197,7 +212,7 @@ describe("Testing the List mutations", () => {
 		it("should ask for the authentication token", (done) => {
 			request(app)
 				.post('/graphql')
-				.send(postData(instances.list1.id, "Test create list", "#121212"))
+				.send(postData(instances.sublist1.id, "Test create sublist"))
 				.expect(result => {
 					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.")
 				})
@@ -205,65 +220,37 @@ describe("Testing the List mutations", () => {
 		})
 
 
-		it("should not find any list", (done) => {
+		it("should not find any sublist", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(899879847, "Test edit", "#154ea1"))
+				.send(postData(89987, "Test edit"))
 				.expect(result => {
-					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.");
+					expect(JSON.parse(result.text).errors[0].message).toBe("No sublist found.");
 				})
 				.end(done);
 		});
 
-		it("should not let the authenticated user edit the list", (done) => {
+		it("should not let the authenticated user edit the sublist", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(instances.listControl.id, "Test edit", "#15ea14"))
+				.send(postData(instances.sublistControl.id, "Test edit"))
 				.expect(result => {
-					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.");
+					expect(JSON.parse(result.text).errors[0].message).toBe("No sublist found.");
 				})
 				.end(done);
 		});
 
-		it("should change the title of the list1", (done) => {
+		it("should change the title of the sublist1", (done) => {
 			const title = "Test edit";
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(instances.list1.id, title))
+				.send(postData(instances.sublist1.id, title))
 				.expect(result => {
-					const list = result.body.data.editList;
-					expect(list.title).toBe(title);
-				})
-				.end(done);
-		});
-
-		it("should change the color of the list1", (done) => {
-			const color = "#e2e2e2";
-			request(app)
-				.post('/graphql')
-				.set('AuthenticationToken', authToken)
-				.send(postData(instances.list1.id, null, color))
-				.expect(result => {
-					const list = result.body.data.editList;
-					expect(list.color).toBe(color);
-				})
-				.end(done);
-		});
-
-		it("should change both the color and the title of the list1", (done) => {
-			const title = "Test edit"
-			const color = "#e2e2e2";
-			request(app)
-				.post('/graphql')
-				.set('AuthenticationToken', authToken)
-				.send(postData(instances.list1.id, title, color))
-				.expect(result => {
-					const list = result.body.data.editList;
-					expect(list.title).toBe(title);
-					expect(list.color).toBe(color);
+					const sublist = result.body.data.editSublist;
+					expect(sublist.title).toBe(title);
 				})
 				.end(done);
 		});
@@ -272,19 +259,19 @@ describe("Testing the List mutations", () => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(instances.list1.id))
+				.send(postData(instances.sublist1.id))
 				.expect(result => {
-					const list = result.body.data.editList;
-					expect(list.title).toBe("Test list 1");
+					const sublist = result.body.data.editSublist;
+					expect(sublist.title).toBe("Test sublist 1");
 				})
 				.end(done);
 		});
 	});
 
-	describe("Tests the deleteList mutation", () => {
+	describe("Tests the deleteSublist mutation", () => {
 		const postData = (id) => ({
-			query: `mutation deleteList($id: Int!){
-						deleteList(id: $id) {
+			query: `mutation deleteSublist($id: Int!){
+						deleteSublist(id: $id) {
 							message
 						}
 					}`,
@@ -296,7 +283,7 @@ describe("Testing the List mutations", () => {
 		it("should ask for the authentication token", (done) => {
 			request(app)
 				.post('/graphql')
-				.send(postData(instances.list1.id))
+				.send(postData(instances.sublist1.id))
 				.expect(result => {
 					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.")
 				})
@@ -309,41 +296,41 @@ describe("Testing the List mutations", () => {
 				.set('AuthenticationToken', authToken)
 				.send(postData(4898794))
 				.expect(result => {
-					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.")
+					expect(JSON.parse(result.text).errors[0].message).toBe("No sublist found.")
 				})
 				.end(done);
 		});
 
-		it("should not allow the user to delete the list", (done) => {
+		it("should not allow the user to delete the sublist", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(instances.listControl.id))
+				.send(postData(instances.sublistControl.id))
 				.expect(result => {
-					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.")
-					return models.List.findOne({ where: { id: instances.listControl.id } })
-						.then(list => {
-							expect(list).not.toBe(null);
+					expect(JSON.parse(result.text).errors[0].message).toBe("No sublist found.")
+					return models.Sublist.findOne({ where: { id: instances.sublistControl.id } })
+						.then(sublist => {
+							expect(sublist).not.toBe(null);
 						})
 						.catch(err => { throw err })
 				})
 				.end(done);
 		});
 
-		it("should delete the list1", (done) => {
+		it("should delete the sublist1", (done) => {
 			request(app)
 				.post('/graphql')
 				.set('AuthenticationToken', authToken)
-				.send(postData(instances.list1.id))
+				.send(postData(instances.sublist1.id))
 				.expect(() => {
-					return models.List.findOne({ where: { id: instances.list1.id } })
-						.then(list => {
-							expect(list).toBe(null);
+					return models.Sublist.findOne({ where: { id: instances.sublist1.id } })
+						.then(sublist => {
+							expect(sublist).toBe(null);
 						})
 						.catch(err => { throw err })
 				})
 				.expect(result => {
-					expect(result.body.data.deleteList.message).toBe('List deleted.')
+					expect(result.body.data.deleteSublist.message).toBe('Sublist deleted.')
 				})
 				.end(done);
 		})
