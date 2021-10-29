@@ -89,4 +89,11 @@ const DeleteType = new GraphQLObjectType({
 	}
 })
 
-module.exports = { createTypes, DeleteType };
+const AuthType = new GraphQLObjectType({
+	name: "Auth",
+	fields: {
+		authentication_token: { type: GraphQLString }
+	}
+})
+
+module.exports = { createTypes, DeleteType, AuthType };
