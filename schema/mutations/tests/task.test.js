@@ -435,4 +435,88 @@ describe("Testing the Task mutations", () => {
 
 	})
 
+	describe("Tests the uncompleteTask mutation", () => {
+		const postData = (id) => ({
+			query: `mutation uncompleteTask($id: Int!){
+						uncompleteTask(id: $id) {
+							title
+							completed
+						}
+					}`,
+			variables: {
+				id: id
+			}
+
+		});
+
+		beforeEach(async () => {
+			instances.task1.completed = true;
+			await instances.task1.save()
+				.catch(err => { throw err })
+			instances.subtask11.completed = true;
+			await instances.subtask11.save()
+				.catch(err => { throw err })
+			instances.subtask12.completed = true;
+			await instances.subtask12.save()
+				.catch(err => { throw err })
+		})
+
+		it("should ask for the authentication token", (done) => {
+			request(app)
+				.post('/graphql')
+				.send(postData(instances.task1.id))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.")
+				})
+				.end(done);
+		});
+
+		it("should not find any task", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(46578984))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No task found.")
+				})
+				.end(done);
+		});
+
+		it("should not allow the user to complete the task", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.taskControl.id))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No task found.")
+				})
+				.end(done);
+		})
+
+		it("should complete the task and both of its subtasks", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.task1.id))
+				.expect(result => {
+					const task = result.body.data.uncompleteTask;
+					expect(task.title).toBe(instances.task1.title);
+					expect(task.completed).toBe(false);
+
+					instances.subtask11.reload()
+						.then(() => {
+							expect(instances.subtask11.completed).toBe(false)
+						})
+						.catch(err => { throw err });
+					instances.subtask12.reload()
+						.then(() => {
+							expect(instances.subtask12.completed).toBe(false)
+						})
+						.catch(err => { throw err });
+				})
+				.end(done);
+		});
+
+	});
+
 });
