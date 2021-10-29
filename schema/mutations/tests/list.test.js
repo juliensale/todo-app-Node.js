@@ -281,5 +281,72 @@ describe("Testing the List queries", () => {
 		});
 	});
 
+	describe("Tests the deleteList mutation", () => {
+		const postData = (id) => ({
+			query: `mutation deleteList($id: Int!){
+						deleteList(id: $id) {
+							message
+						}
+					}`,
+			variables: {
+				id: id
+			}
+
+		});
+		it("should ask for the authentication token", (done) => {
+			request(app)
+				.post('/graphql')
+				.send(postData(instances.list1.id))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.")
+				})
+				.end(done)
+		})
+
+		it("should not find any list", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(4898794))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.")
+				})
+				.end(done);
+		});
+
+		it("should not allow the user to delete the list", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.listControl.id))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No list found.")
+					return models.List.findOne({ where: { id: instances.list1.id } })
+						.then(list => {
+							expect(list).not.toBe(null);
+						})
+						.catch(err => { throw err })
+				})
+				.end(done);
+		});
+
+		it("should delete the list1", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.list1.id))
+				.expect(() => {
+					return models.List.findOne({ where: { id: instances.list1.id } })
+						.then(list => {
+							expect(list).toBe(null);
+						})
+						.catch(err => { throw err })
+				})
+				.expect(result => {
+					expect(result.body.data.deleteList.message).toBe('List deleted.')
+				})
+				.end(done);
+		})
+	})
 
 });

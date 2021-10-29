@@ -76,7 +76,15 @@ const createTypes = (List, Sublist, Task, Subtask) => {
 		})
 	})
 
+
 	return { ListType, SublistType, TaskType, SubtaskType };
 }
 
-module.exports = createTypes;
+const DeleteType = new GraphQLObjectType({
+	name: "Delete",
+	fields: {
+		message: { type: GraphQLString }
+	}
+})
+
+module.exports = { createTypes, DeleteType };

@@ -2,7 +2,7 @@ const graphql = require('graphql');
 const createQueries = require('./queries/createQueries');
 const createMutations = require('./mutations/createMutations');
 const { GraphQLObjectType, GraphQLSchema } = graphql;
-const createTypes = require('./types');
+const { createTypes } = require('./types');
 
 const createSchema = (User, List, Sublist, Task, Subtask) => {
 

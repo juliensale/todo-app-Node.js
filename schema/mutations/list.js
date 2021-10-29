@@ -1,5 +1,6 @@
 const { GraphQLNonNull, GraphQLString, GraphQLInt } = require("graphql");
 const checkAuthentication = require("../checkAuthentication");
+const { DeleteType } = require('../types');
 
 const createListMutations = (User, List, ListType) => {
 	const createList = {
@@ -65,7 +66,38 @@ const createListMutations = (User, List, ListType) => {
 		}
 	};
 
-	return { createList, editList };
+	const deleteList = {
+		type: DeleteType,
+		args: {
+			id: { type: new GraphQLNonNull(GraphQLInt) }
+		},
+		resolve(parent, args, headers) {
+			return checkAuthentication(User, headers)
+				.then(res => {
+					const [errorMessage, user] = res;
+					if (errorMessage) {
+						throw new Error(errorMessage);
+					};
+
+					return List.findOne({ where: { id: args.id, UserId: user.id } })
+						.then(list => {
+							if (!list) {
+								throw new Error('No list found.');
+							};
+
+							return list.destroy()
+								.then(() => {
+									return { message: "List deleted." }
+								})
+								.catch(err => { throw err });
+						})
+						.catch(err => { throw err });
+				})
+				.catch(err => { throw err });
+		}
+	};
+
+	return { createList, editList, deleteList };
 };
 
 module.exports = createListMutations;
