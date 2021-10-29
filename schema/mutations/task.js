@@ -97,7 +97,37 @@ const createTaskMutations = (User, Sublist, Task, TaskType) => {
 		}
 	};
 
-	return { createTask, editTask, deleteTask };
+	const completeTask = {
+		type: TaskType,
+		args: {
+			id: { type: new GraphQLNonNull(GraphQLInt) }
+		},
+		resolve(parent, args, headers) {
+			return checkAuthentication(User, headers)
+				.then(res => {
+					const [errorMessage, user] = res;
+					if (errorMessage) {
+						throw new Error(errorMessage);
+					};
+
+					return Task.findOne({ where: { id: args.id, UserId: user.id } })
+						.then(task => {
+							if (!task) {
+								throw new Error('No task found.');
+							};
+
+							return task.complete()
+								.then(() => {
+									return task
+								})
+								.catch(err => { throw err })
+						})
+						.catch(err => { throw err });
+				})
+		}
+	}
+
+	return { createTask, editTask, deleteTask, completeTask };
 };
 
 module.exports = createTaskMutations;

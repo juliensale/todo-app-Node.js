@@ -1,5 +1,5 @@
 const graphql = require('graphql');
-const { GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLList } = graphql;
+const { GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLBoolean, GraphQLList } = graphql;
 
 
 const createTypes = (List, Sublist, Task, Subtask) => {
@@ -45,6 +45,7 @@ const createTypes = (List, Sublist, Task, Subtask) => {
 		fields: () => ({
 			id: { type: GraphQLInt },
 			title: { type: GraphQLString },
+			completed: { type: GraphQLBoolean },
 			SublistId: { type: GraphQLInt },
 			sublist: {
 				type: SublistType,

@@ -8,13 +8,13 @@ const createMutations = (User, List, Sublist, Task, Subtask, Types) => {
 
 	const { createList, editList, deleteList } = createListMutations(User, List, ListType);
 	const { createSublist, editSublist, deleteSublist } = createSublistMutations(User, List, Sublist, SublistType);
-	const { createTask, editTask, deleteTask } = createTaskMutations(User, Sublist, Task, TaskType);
+	const { createTask, editTask, deleteTask, completeTask } = createTaskMutations(User, Sublist, Task, TaskType);
 	const { createSubtask, editSubtask, deleteSubtask } = createSubtaskMutations(User, Task, Subtask, SubtaskType);
 
 	return {
 		createList, editList, deleteList,
 		createSublist, editSublist, deleteSublist,
-		createTask, editTask, deleteTask,
+		createTask, editTask, deleteTask, completeTask,
 		createSubtask, editSubtask, deleteSubtask
 	};
 }

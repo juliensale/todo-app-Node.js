@@ -27,6 +27,8 @@ describe("Testing the Task mutations", () => {
 		list: undefined,
 		sublist: undefined,
 		task1: undefined,
+		subtask11: undefined,
+		subtask12: undefined,
 		task2: undefined,
 		userControl: undefined,
 		listControl: undefined,
@@ -89,6 +91,18 @@ describe("Testing the Task mutations", () => {
 			title: "Test task 1",
 			UserId: instances.user.id,
 			SublistId: instances.sublist.id
+		}).catch(err => { throw err });
+
+		instances.subtask11 = await models.Subtask.create({
+			title: "Test subtask 1.1",
+			UserId: instances.user.id,
+			TaskId: instances.task1.id
+		}).catch(err => { throw err });
+
+		instances.subtask12 = await models.Subtask.create({
+			title: "Test subtask 1.2",
+			UserId: instances.user.id,
+			TaskId: instances.task1.id
 		}).catch(err => { throw err });
 
 		instances.task2 = await models.Task.create({
@@ -348,6 +362,77 @@ describe("Testing the Task mutations", () => {
 				})
 				.end(done);
 		})
+	});
+
+	describe("Tests the completeTask mutation", () => {
+		const postData = (id) => ({
+			query: `mutation completeTask($id: Int!){
+						completeTask(id: $id) {
+							title
+							completed
+						}
+					}`,
+			variables: {
+				id: id
+			}
+
+		});
+		it("should ask for the authentication token", (done) => {
+			request(app)
+				.post('/graphql')
+				.send(postData(instances.task1.id))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("You must provide an 'AuthenticationToken' header.")
+				})
+				.end(done);
+		});
+
+		it("should not find any task", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(46578984))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No task found.")
+				})
+				.end(done);
+		});
+
+		it("should not allow the user to complete the task", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.taskControl.id))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("No task found.")
+				})
+				.end(done);
+		})
+
+		it("should complete the task and both of its subtasks", (done) => {
+			request(app)
+				.post('/graphql')
+				.set('AuthenticationToken', authToken)
+				.send(postData(instances.task1.id))
+				.expect(result => {
+					const task = result.body.data.completeTask;
+					expect(task.title).toBe(instances.task1.title);
+					expect(task.completed).toBe(true);
+
+					instances.subtask11.reload()
+						.then(() => {
+							expect(instances.subtask11.completed).toBe(true)
+						})
+						.catch(err => { throw err });
+					instances.subtask12.reload()
+						.then(() => {
+							expect(instances.subtask12.completed).toBe(true)
+						})
+						.catch(err => { throw err });
+				})
+				.end(done);
+		})
+
 	})
 
 });
