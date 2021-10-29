@@ -27,6 +27,7 @@ describe("Testing the List mutations", () => {
 	}
 
 	const username = "TestUser"
+	const password = "testpass123"
 	const authToken = jwt.sign({ username: username }, process.env.TOKEN_KEY);
 
 	const app = express();
@@ -62,7 +63,7 @@ describe("Testing the List mutations", () => {
 		// Creating default instances for each unit test
 		instances.user = await models.User.create({
 			username: username,
-			password: "testpass123"
+			password: password
 		}).catch(err => { throw err });
 	});
 
@@ -111,5 +112,49 @@ describe("Testing the List mutations", () => {
 				.end(done)
 		})
 	});
+
+	describe("Tests the login mutation", () => {
+		const postData = (username, password) => ({
+			query: `mutation login($username: String!, $password: String!){
+				login(username: $username, password: $password) {
+					authentication_token
+				}
+			}`,
+			variables: {
+				username,
+				password
+			}
+		});
+
+		it("should not find any user", (done) => {
+			request(app)
+				.post('/graphql')
+				.send(postData('UnusedUsername', "testpassZAE"))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("There is no account with this username.")
+				})
+				.end(done)
+		})
+
+		it("should not accept the password", (done) => {
+			request(app)
+				.post('/graphql')
+				.send(postData(username, "wrongpassword"))
+				.expect(result => {
+					expect(JSON.parse(result.text).errors[0].message).toBe("Wrong password.")
+				})
+				.end(done)
+		})
+
+		it("should return the authentication token", (done) => {
+			request(app)
+				.post('/graphql')
+				.send(postData(username, password))
+				.expect(result => {
+					expect(result.body.data.login.authentication_token).toBe(authToken)
+				})
+				.end(done)
+		})
+	})
 
 });

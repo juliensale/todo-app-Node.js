@@ -29,7 +29,30 @@ const createUserMutations = (User) => {
 		}
 	}
 
-	return { register };
+	const login = {
+		type: AuthType,
+		args: {
+			username: { type: new GraphQLNonNull(GraphQLString) },
+			password: { type: new GraphQLNonNull(GraphQLString) }
+		},
+		resolve(parent, args) {
+			return User.findOne({ where: { username: args.username } })
+				.then(user => {
+					if (!user) {
+						throw new Error("There is no account with this username.");
+					};
+					if (user.checkPassword(args.password)) {
+						const token = jwt.sign({ username: args.username }, process.env.TOKEN_KEY);
+						return { authentication_token: token };
+					} else {
+						throw new Error("Wrong password.")
+					}
+				})
+				.catch(err => { throw err });
+		}
+	};
+
+	return { register, login };
 }
 
 module.exports = createUserMutations;
