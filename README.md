@@ -24,7 +24,7 @@ yarn test
 ```
 
 
-## Endpoints
+## Node.js endpoints
 
 ### User
 
@@ -117,3 +117,52 @@ yarn test
 * Uncomplete (/subtask/:id/uncomplete)
 
   `POST`: Takes no argument. Runs the custom `uncomplete` method of the instance if it was created by the authenticated user.
+
+## GraphQL endpoint
+
+The GraphQL endpoint is accessible at [`http://localhost:8000/graphql`](http://localhost:8000/graphql).
+
+### Available queries
+
+* List(s)
+* Sublist(s)
+* Task(s)
+* Subtask(s)
+
+### Mutations
+
+(The effect of each mutation is similar to the corresponding Node.js endpoint.)
+
+  #### **User related**
+
+  * register
+  * login
+
+  #### **Create**
+
+  * createList
+  * createSublist
+  * createTask
+  * createSubtask
+  #### **Edit**
+
+  * editList
+  * editSublist
+  * editTask
+  * editSubtask
+  #### **Delete**
+
+  * deleteList
+  * deleteSublist
+  * deleteTask
+  * deleteSubtask
+    
+  #### **Compete**
+
+  * completeTask
+  * completeSubtask
+
+  #### **Uncomplete**
+
+  * uncompleteTask
+  * uncompleteSubtask
