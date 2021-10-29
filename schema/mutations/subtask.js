@@ -97,7 +97,33 @@ const createSubtaskMutations = (User, Task, Subtask, SubtaskType) => {
 		}
 	};
 
-	return { createSubtask, editSubtask, deleteSubtask };
+	const completeSubtask = {
+		type: SubtaskType,
+		args: { id: { type: new GraphQLNonNull(GraphQLInt) } },
+		resolve(parent, args, headers) {
+			return checkAuthentication(User, headers)
+				.then(res => {
+					const [errorMessage, user] = res;
+					if (errorMessage) {
+						throw new Error(errorMessage);
+					};
+
+					return Subtask.findOne({ where: { id: args.id, UserId: user.id } })
+						.then(subtask => {
+							if (!subtask) {
+								throw new Error('No subtask found.');
+							};
+							return subtask.complete()
+								.then(() => subtask)
+								.catch(err => { throw err });
+						})
+						.catch(err => { throw err });
+				})
+				.catch(err => { throw err });
+		}
+	};
+
+	return { createSubtask, editSubtask, deleteSubtask, completeSubtask };
 };
 
 module.exports = createSubtaskMutations;

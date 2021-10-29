@@ -67,6 +67,7 @@ const createTypes = (List, Sublist, Task, Subtask) => {
 		fields: () => ({
 			id: { type: GraphQLInt },
 			title: { type: GraphQLString },
+			completed: { type: GraphQLBoolean },
 			TaskId: { type: GraphQLInt },
 			task: {
 				type: TaskType,
